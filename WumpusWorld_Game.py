@@ -1,5 +1,6 @@
 import pygame
 import pygame_gui
+from map_cell import *
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME WINDOW INITIALIZATION  ******
@@ -13,7 +14,7 @@ pygame.init()
 pygame.display.set_caption('WUMPUS WORLD GAME')
 WINDOW = pygame.display.set_mode((WIN_X, WIN_Y))
 background = pygame.Surface((WIN_X, WIN_Y))
-background.fill(WHITE)
+#background.fill(WHITE)
 manager = pygame_gui.UIManager((WIN_X, WIN_Y))
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -37,13 +38,20 @@ class Grid:
                 pygame.draw.line(window, GREY, (j * gap, 0), (j * gap, size_x))
 #------------------------------------------------------------------------------
     def draw_map(self):
+        gap=GAME_X//self.axis_dim
+        print(gap)
         win = WINDOW
-        grid = self
+        cell=Cell(0,0,gap,1,Ctype.EMPTY)
+        cell2=Cell(0,1,gap,1,Ctype.EMPTY)
+        win = WINDOW
+        cell.draw(background)
+        cell2.draw(background)
+        #grid = self
         #win.fill(WHITE)
         # for row in grid.grid:
         #     for cell in row:
         #         cell.draw(win)
-        grid.draw_grid_lines(win, self.axis_dim, WIN_X, )
+        #grid.draw_grid_lines(win, self.axis_dim, WIN_X, )
         pygame.display.update()
 
 
@@ -55,6 +63,8 @@ class Grid:
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 clock = pygame.time.Clock()
 is_running = True
+grid=Grid(20)
+grid.draw_map()
 while is_running:
  time_delta = clock.tick(60)/1000.0
  for event in pygame.event.get():
