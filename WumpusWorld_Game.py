@@ -26,32 +26,25 @@ class Grid:
     def __init__(self, dimension_mod):
         self.grid = []
         self.axis_dim = 3*dimension_mod
+
 #--------------------------------------------------------------------
-    def draw_grid_lines(self, window, axis_dim, size_x, size_y):
-        # gap = size_y // cols
-        gap = size_x // axis_dim
-        for i in range(axis_dim):
-            # DRAWS HORIZONTAL LINES:
-            pygame.draw.line(window, GREY, (0, i * gap), (size_y, i * gap))
-            for j in range(axis_dim):
-                # DRAWS VERTICAL LINES:
-                pygame.draw.line(window, GREY, (j * gap, 0), (j * gap, size_x))
+    def init_grid(self):
+        gap = GAME_X // self.axis_dim
+        for i in range(self.axis_dim):
+            self.grid.append([])
+            for j in range(self.axis_dim):
+                cell = Cell(i, j, gap,self.axis_dim, Ctype.MAGE)
+                self.grid[i].append(cell)
+        return self.grid
+#--------------------------------------------------------------------
 #------------------------------------------------------------------------------
     def draw_map(self):
         gap=GAME_X//self.axis_dim
-        print(gap)
-        win = WINDOW
-        cell=Cell(0,0,gap,1,Ctype.EMPTY)
-        cell2=Cell(0,1,gap,1,Ctype.EMPTY)
-        win = WINDOW
-        cell.draw(background)
-        cell2.draw(background)
-        #grid = self
-        #win.fill(WHITE)
-        # for row in grid.grid:
-        #     for cell in row:
-        #         cell.draw(win)
-        #grid.draw_grid_lines(win, self.axis_dim, WIN_X, )
+        #print(gap)
+        win = background
+        for row in self.grid:
+            for cell in row:
+                cell.draw(win)
         pygame.display.update()
 
 
@@ -63,7 +56,9 @@ class Grid:
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 clock = pygame.time.Clock()
 is_running = True
-grid=Grid(20)
+grid=Grid(2)
+grid.init_grid()
+#print(grid.grid[5][1].ctype)
 grid.draw_map()
 while is_running:
  time_delta = clock.tick(60)/1000.0

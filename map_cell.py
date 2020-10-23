@@ -25,7 +25,7 @@ class Cell:
         self.selected=False
 
 
-    #Called when a cell is clicked on, 
+    #Called when a cell is clicked on,
     def set_selected(self,tf):
         self.selected=tf
 
@@ -34,9 +34,8 @@ class Cell:
 
 
     def draw(self,win):
-        print('draw')
+        #print('draw')
         #Edit this based on what the cell currently contains
         #pygame.draw.rect(win,BLACK,(self.x,self.y,self.size,self.size))
-        pygame.draw.rect(win,WHITE,(self.x+(self.size/10),self.y+(self.size/10),self.size-(self.size/5),self.size-(self.size/5)))
+        pygame.draw.rect(win,WHITE,(self.x+(self.size/12),self.y+(self.size/12),self.size-(self.size/6),self.size-(self.size/6)))
         # pygame.draw.rect(win,,(self.x,self.y,self.size,self.size))
-        
