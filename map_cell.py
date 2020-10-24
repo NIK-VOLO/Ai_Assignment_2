@@ -23,7 +23,6 @@ class Cell:
         self.y=row*size
         self.ctype=ctype
         self.selected=False
-        self.outerRect=pygame.Rect(self.x,self.y,self.size,self.size)
         self.innerRect=pygame.Rect(self.x+(self.size/12),self.y+(self.size/12),self.size-(self.size/6),self.size-(self.size/6))
         #self.font = pygame.font.SysFont(NONE, 12)
 
@@ -57,10 +56,12 @@ class Cell:
         print('draw')
         font=pygame.font.SysFont(None,20)
         text=font.render(f'Test{self.get_type_text()}',True,RED)
-        innerRect = text.get_rect(center=self.innerRect.center)
+        innerRect=text.get_rect(center=self.innerRect.center)
+        #innerRect.fill(WHITE)
         #Edit this based on what the cell currently contains
-        pygame.draw.rect(win,BLACK,(self.x,self.y,self.size,self.size))
-        pygame.draw.rect(win,WHITE,(self.x+(self.size/12),self.y+(self.size/12),self.size-(self.size/6),self.size-(self.size/6)))
+        #pygame.draw.rect(win,BLACK,(self.x,self.y,self.size,self.size))
+        #pygame.draw.rect(win,WHITE,(self.x+(self.size/12),self.y+(self.size/12),self.size-(self.size/6),self.size-(self.size/6)))
+        win.fill(WHITE,self.innerRect)
         win.blit(text,innerRect)
         # pygame.draw.rect(win,,(self.x,self.y,self.size,self.size))
         
