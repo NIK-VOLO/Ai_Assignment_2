@@ -1,5 +1,6 @@
 import pygame
 import pygame_gui
+import random
 from map_cell import *
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -30,11 +31,26 @@ class Grid:
 #--------------------------------------------------------------------
     def init_grid(self):
         gap = GAME_X // self.axis_dim
+        print(self.axis_dim/3-1)
+        #row
+        total_spots=list(range(0, self.axis_dim))
+        hole_locations=None
         for i in range(self.axis_dim):
             self.grid.append([])
+            #column
+            if(i!=0 and i!=self.axis_dim-1):
+                hole_locations=random.sample(total_spots,int(self.axis_dim/3-1))
             for j in range(self.axis_dim):
-                cell = Cell(i, j, gap,self.axis_dim, Ctype.MAGE)
+
+                
+                if(i==0):
+                    cell=Cell(j,i,gap,self.axis_dim,Ctype((j%3)+4))
+                elif(i==self.axis_dim-1):
+                    cell = Cell(j,i, gap,self.axis_dim, Ctype((j%3)+1))
+                else:
+                    cell=Cell(j,i,gap,self.axis_dim,Ctype.EMPTY)
                 self.grid[i].append(cell)
+            
         return self.grid
 #--------------------------------------------------------------------
 #------------------------------------------------------------------------------

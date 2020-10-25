@@ -54,6 +54,7 @@ class Cell:
             return ''
     def draw(self,win):
         print('draw')
+        print(self.ctype)
         font=pygame.font.SysFont(None,20)
         text=font.render(f'{self.get_type_text()}',True,RED)
         innerRect=text.get_rect(center=self.innerRect.center)
