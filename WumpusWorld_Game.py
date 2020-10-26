@@ -68,6 +68,14 @@ while is_running:
  for event in pygame.event.get():
      if event.type == pygame.QUIT:
          is_running = False
+     elif event.type == pygame.MOUSEBUTTONDOWN:
+        location = pygame.mouse.get_pos()
+        col = location[0]
+        row = location[1]
+        print("testing clicking")
+        print(f"X-axis Location : {col}")
+        print(f"Y-axis Location : {row}")
+
 
      manager.process_events(event)
 
