@@ -130,7 +130,7 @@ while is_running:
             is_running = False
 
         # Get the row and column of the clicked positin on game board
-        if pygame.mouse.get_pressed()[0]:
+        if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             col, row = get_clicked_pos(grid, pos)
             if col < grid.axis_dim and row < grid.axis_dim: # Excludes positions outside of board dimensions
@@ -141,8 +141,6 @@ while is_running:
                 else:
                     LAST_CLICKED = CLICKED_POS
                     print(f"SELECTED CELL :: {CLICKED_POS}  {grid.grid[col][row].get_type_text()})")
-
-
 
         if event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
