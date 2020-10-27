@@ -38,32 +38,32 @@ LAST_CLICKED = CLICKED_POS
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Grid:
     def __init__(self, dimension_mod):
-        self.grid = []
         self.axis_dim = 3*dimension_mod
+        self.grid = x = [[None for _ in range(self.axis_dim)] for _ in range(self.axis_dim)]
 
 #--------------------------------------------------------------------
     def init_grid(self):
         gap = GAME_X // self.axis_dim
         print(self.axis_dim/3-1)
-        #row
         total_spots=list(range(0, self.axis_dim))
-        hole_locations=None
+        hole_locations=[]
+        #row
         for i in range(self.axis_dim):
             self.grid.append([])
-            #column
+
             if(i!=0 and i!=self.axis_dim-1):
                 hole_locations=random.sample(total_spots,int(self.axis_dim/3-1))
+            #column
             for j in range(self.axis_dim):
-
-
                 if(i==0):
                     cell=Cell(j,i,gap,self.axis_dim,Ctype((j%3)+4))
                 elif(i==self.axis_dim-1):
                     cell = Cell(j,i, gap,self.axis_dim, Ctype((j%3)+1))
                 else:
                     cell=Cell(j,i,gap,self.axis_dim,Ctype.EMPTY)
-                self.grid[i].append(cell)
-
+                self.grid[j][i]=cell
+            for k in hole_locations:
+                self.grid[k][i].set_ctype(Ctype.HOLE)
         return self.grid
 #--------------------------------------------------------------------
     def draw_map(self):
