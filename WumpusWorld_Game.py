@@ -21,6 +21,19 @@ manager = pygame_gui.UIManager((WIN_X, WIN_Y))
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # ***** GLOBAL VARIABLES  ******
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CLICKED_POS = (-1,-1)
+LAST_CLICKED = CLICKED_POS
+
+
+
+
+
+
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME GRID FUNCTIONS  ******
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Grid:
@@ -42,7 +55,7 @@ class Grid:
                 hole_locations=random.sample(total_spots,int(self.axis_dim/3-1))
             for j in range(self.axis_dim):
 
-                
+
                 if(i==0):
                     cell=Cell(j,i,gap,self.axis_dim,Ctype((j%3)+4))
                 elif(i==self.axis_dim-1):
@@ -50,10 +63,9 @@ class Grid:
                 else:
                     cell=Cell(j,i,gap,self.axis_dim,Ctype.EMPTY)
                 self.grid[i].append(cell)
-            
+
         return self.grid
 #--------------------------------------------------------------------
-#------------------------------------------------------------------------------
     def draw_map(self):
         gap=GAME_X//self.axis_dim
         #print(gap)
@@ -62,9 +74,44 @@ class Grid:
             for cell in row:
                 cell.draw(win)
         pygame.display.update()
+#--------------------------------------------------------------------
+
+    # SET COLOR OF A PARTICULAR CELL IN GRID
+    # def set_cell_color(self, col, row, color):
+    #     self.grid[col][row].set_color(color)
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # ***** END GRID FUNCTIONS  ******
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
+
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # ***** GLOBAL FUNCTIONS  ******
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def get_clicked_pos(grid, position):
+    gap = GAME_X // grid.axis_dim
+    x, y = position
+    row = y // gap
+    col = x // gap
+    return col, row
+
+def player_move_unit(grid):
+    print("Player makes a move!")
+
+
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # ***** BUTTONS  ******
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+button_layout_rect = pygame.Rect(0, 0, 100, 50)
+button_layout_rect.topright = (-30,20)
+hello_button = pygame_gui.elements.UIButton(relative_rect=button_layout_rect, text='Say Hello', manager=manager,
+                                             anchors={'left': 'right',
+                                             'right': 'right',
+                                             'top': 'top',
+                                             'bottom': 'top'})
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME LOOP ******
@@ -77,18 +124,38 @@ grid.init_grid()
 #print(grid.grid[5][1].ctype)
 grid.draw_map()
 while is_running:
- time_delta = clock.tick(60)/1000.0
- for event in pygame.event.get():
-     if event.type == pygame.QUIT:
-         is_running = False
+    time_delta = clock.tick(60)/1000.0
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            is_running = False
 
-     manager.process_events(event)
+        # Get the row and column of the clicked positin on game board
+        if pygame.mouse.get_pressed()[0]:
+            pos = pygame.mouse.get_pos()
+            col, row = get_clicked_pos(grid, pos)
+            if col < grid.axis_dim and row < grid.axis_dim: # Excludes positions outside of board dimensions
+                CLICKED_POS = (col,row)
+                if(CLICKED_POS == LAST_CLICKED): # Check if the cell has already been selected
+                    #print("Cell already selected...")
+                    pass
+                else:
+                    LAST_CLICKED = CLICKED_POS
+                    print(f"SELECTED CELL :: {CLICKED_POS}  {grid.grid[col][row].get_type_text()})")
 
- manager.update(time_delta)
 
- WINDOW.blit(background, (0, 0))
- manager.draw_ui(WINDOW)
 
- pygame.display.update()
+        if event.type == pygame.USEREVENT:
+            if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == hello_button:
+                    print('Hello World!')
+
+    manager.process_events(event)
+
+    manager.update(time_delta)
+
+    WINDOW.blit(background, (0, 0))
+    manager.draw_ui(WINDOW)
+
+    pygame.display.update()
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------

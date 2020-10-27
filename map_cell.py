@@ -27,7 +27,7 @@ class Cell:
         #self.font = pygame.font.SysFont(NONE, 12)
 
 
-    #Called when a cell is clicked on, 
+    #Called when a cell is clicked on,
     def set_selected(self,tf):
         self.selected=tf
 
@@ -53,8 +53,8 @@ class Cell:
         else:
             return ''
     def draw(self,win):
-        print('draw')
-        print(self.ctype)
+        #print('draw')
+        #print(self.ctype)
         font=pygame.font.SysFont(None,20)
         text=font.render(f'{self.get_type_text()}',True,RED)
         innerRect=text.get_rect(center=self.innerRect.center)
@@ -62,4 +62,3 @@ class Cell:
         win.fill(WHITE,self.innerRect)
         win.blit(text,innerRect)
         # pygame.draw.rect(win,,(self.x,self.y,self.size,self.size))
-        
