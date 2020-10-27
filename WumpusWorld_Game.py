@@ -159,19 +159,39 @@ def player_move_unit(grid, event):
             t_piece.selected = False
             NUM_SELECTED -=1
 
-            #------------------------
-            # DO SOME CHECKS HERE
-            #       --> CHECK IF CELL IS A PIT
-            #       --> CHECK IF CELL IS AN ENEMY AND OF WHAT TYPE
-            #------------------------
+            code=p_piece.fight(t_piece)
+            print(f'Code:{code}')
+            #No battle, swap swap cells
+            if code==0:
+                temp_type = t_piece.ctype
+                t_piece.ctype = p_piece.ctype
+                p_piece.ctype = temp_type
+            #Invalid move
+            if code==-3:
+                pass
+            #both pieces die
+            elif code==-2:
+                t_piece.ctype=Ctype.EMPTY
+                p_piece.ctype=Ctype.EMPTY
+            #t_piece dies
+            elif code==1:
+                #code to subtract from total pieces here
+                t_piece.ctype=p_piece.ctype
+                p_piece.ctype=Ctype.EMPTY
+            #p_piece dies
+            elif code==-1:
+                print('here')
+                p_piece.ctype=Ctype.EMPTY
+                print(p_piece)
+            elif code==-4:
+                print('Probably a bug?')
 
-            # SWAP THE CELLS IF TARGET CELL IS EMPTY
-            temp_type = t_piece.ctype
-            t_piece.ctype = p_piece.ctype
-            p_piece.ctype = temp_type
             t_piece.draw(background)
             p_piece.draw(background)
+            
 
+
+            #A method to check if the player or the cpu won should go here
             return
 
         else:

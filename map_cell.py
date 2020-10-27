@@ -28,6 +28,8 @@ class Cell:
         self.innerRect=pygame.Rect(self.x+2,self.y+2,self.size-1,self.size-1)
         #self.font = pygame.font.SysFont(NONE, 12)
 
+    def __str__(self):
+        return f'({self.col},{self.row}),{self.get_type_text()}'
     #Called when a cell is clicked on,
     def set_selected(self,tf):
         self.selected=tf
@@ -35,6 +37,67 @@ class Cell:
     def set_ctype(self,ctype):
         self.ctype=ctype
 
+
+    #-------------------------------------------------------
+    # Does not change selected (boolean) or the ctype in the cell. 
+    # Have to do that in grid to store information on how many of each type of piece are left
+    # Returns: 
+    # 0 if no piece dies,
+    # -1 if self piece dies,
+    # 1 if cell2 dies,
+    # -2 if both pieces die
+    # -3 if move is not allowed
+    # -4 Means that the first piece selected was not a player or cpu piece, so probably a bug with the program
+    #-------------------------------------------------------
+    def fight(self,cell2):
+        if not (self.row in range(cell2.row-1,cell2.row+2) and self.col in range(cell2.col-1,cell2.col+2)):
+            print('Invalid Move cell range')
+            return -3
+        #Self piece is a player piece
+        if(1<=self.ctype<=3):
+            if cell2.ctype==Ctype.EMPTY:
+                return 0
+            elif cell2.ctype==Ctype.HOLE:
+                return -1
+            elif (1<=cell2.ctype<=3):
+                print('Invalid Move pvp')
+                return -3
+            else:
+                id=self.ctype+3-cell2.ctype
+                if(id==0):
+                    print('Both die')
+                    return -2
+                #cell2 piece dies
+                elif(id==1 or id==-2):
+                    return 1
+                #cell1 piece dies
+                else:
+                    return -1
+
+        # Self piece is a cpu piece
+        elif 4<self.ctype<=6:
+            if cell2.ctype==Ctype.EMPTY:
+                return 0
+            elif cell2.ctype==Ctype.HOLE:
+                return -1
+            elif (4<=cell2.ctype<=6):
+                print('Invalid Move cpu v.cpu')
+                return -3
+            else:
+                id=self.ctype-3-cell2.ctype
+                if(id==0):
+                    print('Both die')
+                    return -2
+                #cell2 piece dies
+                elif(id==1 or id==-2):
+                    return 1
+                #cell1 piece dies
+                else:
+                    return -1
+        # Probably a bug
+        else:
+            print('BUG?')
+            return -4
     def get_type_text(self):
         t=self.ctype
         if(t==Ctype.CPUKNIGHT):
