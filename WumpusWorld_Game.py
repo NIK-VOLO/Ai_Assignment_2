@@ -63,7 +63,8 @@ class Grid:
                     cell=Cell(j,i,gap,self.axis_dim,Ctype.EMPTY)
                 self.grid[j][i]=cell
             for k in hole_locations:
-                self.grid[k][i].set_ctype(Ctype.HOLE)
+                if(i!=0 and i!=self.axis_dim-1):
+                    self.grid[k][i].set_ctype(Ctype.HOLE)
         return self.grid
 #--------------------------------------------------------------------
     def draw_map(self):
@@ -119,7 +120,7 @@ hello_button = pygame_gui.elements.UIButton(relative_rect=button_layout_rect, te
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 clock = pygame.time.Clock()
 is_running = True
-grid=Grid(2)
+grid=Grid(3)
 grid.init_grid()
 #print(grid.grid[5][1].ctype)
 grid.draw_map()
