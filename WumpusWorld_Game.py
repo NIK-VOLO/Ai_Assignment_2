@@ -52,6 +52,7 @@ class Grid:
             self.grid.append([])
 
             if(i!=0 and i!=self.axis_dim-1):
+                #CHANGE THIS BASED ON WHAT THE PROFESSOR SAYS FOR NUMBER OF PITS
                 hole_locations=random.sample(total_spots,int(self.axis_dim/3-1))
             #column
             for j in range(self.axis_dim):
@@ -120,7 +121,7 @@ hello_button = pygame_gui.elements.UIButton(relative_rect=button_layout_rect, te
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 clock = pygame.time.Clock()
 is_running = True
-grid=Grid(3)
+grid=Grid(2)
 grid.init_grid()
 #print(grid.grid[5][1].ctype)
 grid.draw_map()

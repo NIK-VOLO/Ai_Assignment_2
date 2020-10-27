@@ -1,10 +1,12 @@
 import pygame
-from enum import Enum
+from enum import IntEnum
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED=(255,0,0)
-class Ctype(Enum):
+BLUE=(0,0,255)
+PURPLE=(128,0,128)
+class Ctype(IntEnum):
     MAGE=1
     WUMPUS=2
     KNIGHT=3
@@ -25,7 +27,6 @@ class Cell:
         self.selected=False
         self.innerRect=pygame.Rect(self.x+2,self.y+2,self.size-1,self.size-1)
         #self.font = pygame.font.SysFont(NONE, 12)
-
 
     #Called when a cell is clicked on,
     def set_selected(self,tf):
@@ -53,10 +54,17 @@ class Cell:
         else:
             return ''
     def draw(self,win):
-        #print('draw')
-        #print(self.ctype)
+
         font=pygame.font.SysFont(None,20)
-        text=font.render(f'{self.get_type_text()}',True,RED)
+        if(self.ctype in range(4,7)):
+            mainColor=BLUE
+        elif self.ctype in range(1,4):
+            mainColor=RED
+        else:
+            mainColor=BLACK
+        if(self.selected):
+            mainColor=PURPLE
+        text=font.render(f'{self.get_type_text()}',True,mainColor)
         innerRect=text.get_rect(center=self.innerRect.center)
         #innerRect.fill(WHITE)
         win.fill(WHITE,self.innerRect)
