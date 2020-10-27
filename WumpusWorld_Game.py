@@ -98,9 +98,22 @@ def get_clicked_pos(grid, position):
     col = x // gap
     return col, row
 
-def player_move_unit(grid):
-    print("Player makes a move!")
-
+def player_move_unit(grid, event):
+    global LAST_CLICKED
+    global CLICKED_POS
+    # Get the row and column of the clicked positin on game board
+    if event.type == pygame.MOUSEBUTTONUP:
+        pos = pygame.mouse.get_pos()
+        col, row = get_clicked_pos(grid, pos)
+        # Excludes positions outside of board dimensions
+        if col < grid.axis_dim and row < grid.axis_dim:
+             CLICKED_POS = (col,row)
+             if(CLICKED_POS == LAST_CLICKED): # Check if the cell has already been selected
+                 #print("Cell already selected...")
+                 pass
+             else:
+                 LAST_CLICKED = CLICKED_POS
+                 print(f"SELECTED CELL :: {CLICKED_POS}  {grid.grid[col][row].get_type_text()})")
 
 
 
@@ -131,18 +144,21 @@ while is_running:
         if event.type == pygame.QUIT:
             is_running = False
 
-        # Get the row and column of the clicked positin on game board
-        if event.type == pygame.MOUSEBUTTONUP:
-            pos = pygame.mouse.get_pos()
-            col, row = get_clicked_pos(grid, pos)
-            if col < grid.axis_dim and row < grid.axis_dim: # Excludes positions outside of board dimensions
-                CLICKED_POS = (col,row)
-                if(CLICKED_POS == LAST_CLICKED): # Check if the cell has already been selected
-                    #print("Cell already selected...")
-                    pass
-                else:
-                    LAST_CLICKED = CLICKED_POS
-                    print(f"SELECTED CELL :: {CLICKED_POS}  {grid.grid[col][row].get_type_text()})")
+        player_move_unit(grid, event)
+
+
+        # # Get the row and column of the clicked positin on game board
+        # if event.type == pygame.MOUSEBUTTONUP:
+        #     pos = pygame.mouse.get_pos()
+        #     col, row = get_clicked_pos(grid, pos)
+        #     if col < grid.axis_dim and row < grid.axis_dim: # Excludes positions outside of board dimensions
+        #         CLICKED_POS = (col,row)
+        #         if(CLICKED_POS == LAST_CLICKED): # Check if the cell has already been selected
+        #             #print("Cell already selected...")
+        #             pass
+        #         else:
+        #             LAST_CLICKED = CLICKED_POS
+        #             print(f"SELECTED CELL :: {CLICKED_POS}  {grid.grid[col][row].get_type_text()})")
 
         if event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
