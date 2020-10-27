@@ -52,7 +52,7 @@ class Cell:
         elif(t==Ctype.HOLE):
             return 'HOLE'
         else:
-            return ''
+            return '-'
     def draw(self,win):
 
         font=pygame.font.SysFont(None,20)

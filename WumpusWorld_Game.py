@@ -2,6 +2,7 @@ import pygame
 import pygame_gui
 import random
 from map_cell import *
+import queue
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME WINDOW INITIALIZATION  ******
@@ -25,7 +26,8 @@ manager = pygame_gui.UIManager((WIN_X, WIN_Y))
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 CLICKED_POS = (-1,-1)
 LAST_CLICKED = CLICKED_POS
-
+NUM_SELECTED = 0
+PLAYER_SELECTIONS = queue.Queue(3) # QUEUE TO KEEP TRACK OF CONSECUTIVE SELECTS
 
 
 
@@ -98,9 +100,29 @@ def get_clicked_pos(grid, position):
     col = x // gap
     return col, row
 
+def clear_selected():
+    global PLAYER_SELECTIONS
+    global NUM_SELECTED
+    while not PLAYER_SELECTIONS.empty():
+        cell = PLAYER_SELECTIONS.get()
+        print(f"Removing: '{cell.get_type_text()}' from list")
+        cell.selected = False
+        cell.draw(background)
+    NUM_SELECTED = 0
+
+def update_selected(cell):
+    global NUM_SELECTED
+    cell.selected = True
+    cell.draw(background)
+    NUM_SELECTED +=1
+    PLAYER_SELECTIONS.put(cell)
+    print(f"SELECTED CELL :: {CLICKED_POS}  {cell.get_type_text()})")
+
 def player_move_unit(grid, event):
     global LAST_CLICKED
     global CLICKED_POS
+    global NUM_SELECTED
+    global PLAYER_SELECTIONS
     # Get the row and column of the clicked positin on game board
     if event.type == pygame.MOUSEBUTTONUP:
         pos = pygame.mouse.get_pos()
@@ -108,12 +130,53 @@ def player_move_unit(grid, event):
         # Excludes positions outside of board dimensions
         if col < grid.axis_dim and row < grid.axis_dim:
              CLICKED_POS = (col,row)
-             if(CLICKED_POS == LAST_CLICKED): # Check if the cell has already been selected
-                 #print("Cell already selected...")
-                 pass
-             else:
-                 LAST_CLICKED = CLICKED_POS
-                 print(f"SELECTED CELL :: {CLICKED_POS}  {grid.grid[col][row].get_type_text()})")
+             cell = grid.grid[col][row]
+             # SELECT & DESELECT A CELL
+             #  -- MAX 2 SELECTED
+             if cell.selected == True:
+                 cell.selected = False
+                 cell.draw(background)
+                 NUM_SELECTED -= 1
+                 PLAYER_SELECTIONS.get()
+             elif cell.selected == False and NUM_SELECTED < 2:
+                 if NUM_SELECTED == 0 and (1 <= cell.ctype <= 3):
+                     update_selected(cell)
+                 elif NUM_SELECTED == 0 and (4 <= cell.ctype <= 8):
+                     print("Please select a friendly piece first!")
+                 elif NUM_SELECTED > 0 and (4 <= cell.ctype <= 8):
+                     update_selected(cell)
+             print(f"Num selected = {NUM_SELECTED}")
+    # CLICK ENTER TO CONFIRM YOUR MOVE
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_RETURN and NUM_SELECTED == 2:
+            print("CONFIRMED MOVE")
+            # Get the two cells from the queue
+            p_piece = PLAYER_SELECTIONS.get()
+            p_piece.selected = False
+            NUM_SELECTED -=1
+
+            t_piece = PLAYER_SELECTIONS.get()
+            t_piece.selected = False
+            NUM_SELECTED -=1
+
+            #------------------------
+            # DO SOME CHECKS HERE
+            #       --> CHECK IF CELL IS A PIT
+            #       --> CHECK IF CELL IS AN ENEMY AND OF WHAT TYPE
+            #------------------------
+
+            # SWAP THE CELLS IF TARGET CELL IS EMPTY
+            temp_type = t_piece.ctype
+            t_piece.ctype = p_piece.ctype
+            p_piece.ctype = temp_type
+            t_piece.draw(background)
+            p_piece.draw(background)
+
+            return
+
+        else:
+            print("Invalid keypress or not enough selected")
+
 
 
 
@@ -145,20 +208,6 @@ while is_running:
             is_running = False
 
         player_move_unit(grid, event)
-
-
-        # # Get the row and column of the clicked positin on game board
-        # if event.type == pygame.MOUSEBUTTONUP:
-        #     pos = pygame.mouse.get_pos()
-        #     col, row = get_clicked_pos(grid, pos)
-        #     if col < grid.axis_dim and row < grid.axis_dim: # Excludes positions outside of board dimensions
-        #         CLICKED_POS = (col,row)
-        #         if(CLICKED_POS == LAST_CLICKED): # Check if the cell has already been selected
-        #             #print("Cell already selected...")
-        #             pass
-        #         else:
-        #             LAST_CLICKED = CLICKED_POS
-        #             print(f"SELECTED CELL :: {CLICKED_POS}  {grid.grid[col][row].get_type_text()})")
 
         if event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
