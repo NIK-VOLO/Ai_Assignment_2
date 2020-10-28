@@ -39,7 +39,7 @@ CPU_NUM_UNITS = 0
 class Grid:
     def __init__(self, dimension_mod):
         self.axis_dim = 3*dimension_mod
-        self.grid = x = [[None for _ in range(
+        self.grid = [[None for _ in range(
             self.axis_dim)] for _ in range(self.axis_dim)]
 
 # --------------------------------------------------------------------
@@ -61,10 +61,10 @@ class Grid:
             # column
             for j in range(self.axis_dim):
                 if(i == 0):
-                    cell = Cell(j, i, gap, self.axis_dim, Ctype((j % 3)+4))
+                    cell = Cell(j, i, gap, self.axis_dim, Ctype(((j+1) % 3)+4))
                     PLAYER_NUM_UNITS += 1
                 elif(i == self.axis_dim-1):
-                    cell = Cell(j, i, gap, self.axis_dim, Ctype((j % 3)+1))
+                    cell = Cell(j, i, gap, self.axis_dim, Ctype(((j+1) % 3)+1))
                     CPU_NUM_UNITS += 1
                 else:
                     cell = Cell(j, i, gap, self.axis_dim, Ctype.EMPTY)
@@ -74,7 +74,34 @@ class Grid:
                     self.grid[k][i].set_ctype(Ctype.HOLE)
         return self.grid
 # --------------------------------------------------------------------
+    # Resets the game, keeps the current hole locations
+    def reset_grid(self):
+        global PLAYER_NUM_UNITS
+        global CPU_NUM_UNITS
+        PLAYER_NUM_UNITS=self.axis_dim
+        CPU_NUM_UNITS=self.axis_dim
+        # row
+        for i in range(self.axis_dim):
+            #column
+            for j in range(self.axis_dim):
+                if(i == 0):
+                    self.grid[j][i].ctype=Ctype(((j+1) % 3)+4)
 
+                elif(i == self.axis_dim-1):
+                    self.grid[j][i].ctype=Ctype(((j+1) % 3)+1)
+                    CPU_NUM_UNITS += 1
+                else:
+                    if(self.grid[j][i].ctype!=Ctype.HOLE):
+                        self.grid[j][i].ctype=Ctype.EMPTY
+        self.draw_map()
+# --------------------------------------------------------------------
+    def generate_grid(self,dimension_mod):
+        self.axis_dim=3*dimension_mod
+        self.grid=None
+        self.grid = [[None for _ in range(self.axis_dim)] for _ in range(self.axis_dim)]
+        self.init_grid()
+
+# --------------------------------------------------------------------
     def draw_map(self):
         gap = GAME_X//self.axis_dim
         # print(gap)

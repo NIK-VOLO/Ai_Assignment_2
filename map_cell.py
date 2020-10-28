@@ -101,7 +101,7 @@ class Cell:
     def get_type_text(self):
         t=self.ctype
         if(t==Ctype.CPUKNIGHT):
-            return 'CPUK'
+            return 'CPUH'
         elif(t==Ctype.CPUMAGE):
             return 'CPUM'
         elif(t==Ctype.CPUWUMPUS):
@@ -109,7 +109,7 @@ class Cell:
         elif(t==Ctype.MAGE):
             return "PM"
         elif(t==Ctype.KNIGHT):
-            return "PK"
+            return "PH"
         elif(t==Ctype.WUMPUS):
             return 'PW'
         elif(t==Ctype.HOLE):
