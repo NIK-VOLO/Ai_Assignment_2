@@ -9,7 +9,7 @@ import queue
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 WHITE = (255,255,255)
 GREY = (128, 128, 128)
-WIN_X = 800
+WIN_X = 900
 WIN_Y = 600
 GAME_X = WIN_Y
 pygame.init()
@@ -28,6 +28,7 @@ CLICKED_POS = (-1,-1)
 LAST_CLICKED = CLICKED_POS
 NUM_SELECTED = 0
 PLAYER_SELECTIONS = queue.Queue(3) # QUEUE TO KEEP TRACK OF CONSECUTIVE SELECTS
+PLAYER_NUM_UNITS =
 
 
 
@@ -146,56 +147,55 @@ def player_move_unit(grid, event):
                  elif NUM_SELECTED > 0 and (4 <= cell.ctype <= 8):
                      update_selected(cell)
              print(f"Num selected = {NUM_SELECTED}")
-    # CLICK ENTER TO CONFIRM YOUR MOVE
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_RETURN and NUM_SELECTED == 2:
-            print("CONFIRMED MOVE")
-            # Get the two cells from the queue
-            p_piece = PLAYER_SELECTIONS.get()
-            p_piece.selected = False
-            NUM_SELECTED -=1
 
-            t_piece = PLAYER_SELECTIONS.get()
-            t_piece.selected = False
-            NUM_SELECTED -=1
+             if NUM_SELECTED == 2:
+                 print("CONFIRMED MOVE")
+                 # Get the two cells from the queue
+                 p_piece = PLAYER_SELECTIONS.get()
+                 p_piece.selected = False
+                 NUM_SELECTED -=1
 
-            code=p_piece.fight(t_piece)
-            print(f'Code:{code}')
-            #No battle, swap swap cells
-            if code==0:
-                temp_type = t_piece.ctype
-                t_piece.ctype = p_piece.ctype
-                p_piece.ctype = temp_type
-            #Invalid move
-            if code==-3:
-                pass
-            #both pieces die
-            elif code==-2:
-                t_piece.ctype=Ctype.EMPTY
-                p_piece.ctype=Ctype.EMPTY
-            #t_piece dies
-            elif code==1:
-                #code to subtract from total pieces here
-                t_piece.ctype=p_piece.ctype
-                p_piece.ctype=Ctype.EMPTY
-            #p_piece dies
-            elif code==-1:
-                print('here')
-                p_piece.ctype=Ctype.EMPTY
-                print(p_piece)
-            elif code==-4:
-                print('Probably a bug?')
+                 t_piece = PLAYER_SELECTIONS.get()
+                 t_piece.selected = False
+                 NUM_SELECTED -=1
 
-            t_piece.draw(background)
-            p_piece.draw(background)
-            
+                 code=p_piece.fight(t_piece)
+                 print(f'Code:{code}')
+                 #No battle, swap swap cells
+                 if code==0:
+                     temp_type = t_piece.ctype
+                     t_piece.ctype = p_piece.ctype
+                     p_piece.ctype = temp_type
+                 #Invalid move
+                 if code==-3:
+                     pass
+                 #both pieces die
+                 elif code==-2:
+                     t_piece.ctype=Ctype.EMPTY
+                     p_piece.ctype=Ctype.EMPTY
+                 #t_piece dies
+                 elif code==1:
+                     #code to subtract from total pieces here
+                     t_piece.ctype=p_piece.ctype
+                     p_piece.ctype=Ctype.EMPTY
+                 #p_piece dies
+                 elif code==-1:
+                     print('here')
+                     p_piece.ctype=Ctype.EMPTY
+                     print(p_piece)
+                 elif code==-4:
+                     print('Probably a bug?')
+
+                 t_piece.draw(background)
+                 p_piece.draw(background)
 
 
-            #A method to check if the player or the cpu won should go here
-            return
 
-        else:
-            print("Invalid keypress or not enough selected")
+                 #A method to check if the player or the cpu won should go here
+                 return
+             else:
+                 print("select another to move")
+
 
 
 

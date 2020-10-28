@@ -39,9 +39,9 @@ class Cell:
 
 
     #-------------------------------------------------------
-    # Does not change selected (boolean) or the ctype in the cell. 
+    # Does not change selected (boolean) or the ctype in the cell.
     # Have to do that in grid to store information on how many of each type of piece are left
-    # Returns: 
+    # Returns:
     # 0 if no piece dies,
     # -1 if self piece dies,
     # 1 if cell2 dies,
@@ -115,7 +115,7 @@ class Cell:
         elif(t==Ctype.HOLE):
             return 'HOLE'
         else:
-            return '-'
+            return ''
     def draw(self,win):
 
         font=pygame.font.SysFont(None,20)
