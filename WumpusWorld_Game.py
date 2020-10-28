@@ -31,6 +31,7 @@ NUM_SELECTED = 0
 PLAYER_SELECTIONS = queue.Queue(3)
 PLAYER_NUM_UNITS = 0
 CPU_NUM_UNITS = 0
+VICTORY_TEXT = "Game In Progress..."
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -158,6 +159,7 @@ def player_move_unit(grid, event):
     global PLAYER_SELECTIONS
     global PLAYER_NUM_UNITS
     global CPU_NUM_UNITS
+    global VICTORY_TEXT
     # Get the row and column of the clicked positin on game board
     if event.type == pygame.MOUSEBUTTONUP:
         pos = pygame.mouse.get_pos()
@@ -227,8 +229,8 @@ def player_move_unit(grid, event):
                 p_piece.draw(background)
 
                 print(f"PLAYER PIECES ({PLAYER_NUM_UNITS}) ---- CPU PIECES ({CPU_NUM_UNITS})")
-                check_win()
-                
+                VICTORY_TEXT = check_win()
+
                  # A method to check if the player or the cpu won should go here
                 return
             else:
@@ -242,21 +244,21 @@ def player_move_unit(grid, event):
 def check_win():
     if(PLAYER_NUM_UNITS==CPU_NUM_UNITS==0):
         print('Tie')
-        return 0
+        return 'Tie'
     elif(PLAYER_NUM_UNITS==0):
         print('CPU Wins')
-        return -1
+        return 'CPU Wins'
     elif(CPU_NUM_UNITS==0):
         print('Player Wins')
-        return 1
-    return 1
+        return 'Player Wins'
+    return "Game In Progress..."
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** UI ELEMENTS  ******
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 button_layout_rect = pygame.Rect(0, 0, 100, 50)
-button_layout_rect.topright = (-30,20)
+button_layout_rect.topright = (-30,70)
 hello_button = pygame_gui.elements.UIButton(relative_rect=button_layout_rect, text='Say Hello', manager=manager,
                                              anchors={'left': 'right',
                                              'right': 'right',
@@ -264,7 +266,7 @@ hello_button = pygame_gui.elements.UIButton(relative_rect=button_layout_rect, te
                                              'bottom': 'top'})
 
 cpu_score_layout = pygame.Rect(0,0,150,40)
-cpu_score_layout.topright = (-138, 20)
+cpu_score_layout.topright = (-138, 70)
 cpu_score_text = pygame_gui.elements.UILabel(relative_rect = cpu_score_layout, text = "CPU Pieces: " + str(CPU_NUM_UNITS), manager = manager,
                                                 anchors={'left': 'right',
                                                 'right': 'right',
@@ -279,6 +281,13 @@ player_score_text = pygame_gui.elements.UILabel(relative_rect = player_score_lay
                                                 'top': 'bottom',
                                                 'bottom': 'bottom'})
 
+game_status_layout = pygame.Rect(0,0,200,40)
+game_status_layout.center = (-138,30)
+game_status_text = pygame_gui.elements.UILabel(relative_rect = game_status_layout, text = VICTORY_TEXT, manager = manager,
+                                                anchors={'left': 'right',
+                                                'right': 'right',
+                                                'top': 'top',
+                                                'bottom': 'bottom'})
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME LOOP ******
         # For testing purposes mainly
@@ -296,8 +305,11 @@ while is_running:
             is_running = False
 
         player_move_unit(grid, event)
+
         cpu_score_text.set_text("CPU Pieces: " + str(CPU_NUM_UNITS))
         player_score_text.set_text("PLAYER Pieces: " + str(PLAYER_NUM_UNITS))
+        game_status_text.set_text(f'{VICTORY_TEXT}')
+
         if event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == hello_button:
