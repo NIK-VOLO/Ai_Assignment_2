@@ -32,6 +32,7 @@ PLAYER_SELECTIONS = queue.Queue(3)
 PLAYER_NUM_UNITS = 0
 CPU_NUM_UNITS = 0
 VICTORY_TEXT = "Game In Progress..."
+D_MOD = 1
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -79,6 +80,8 @@ class Grid:
     def reset_grid(self):
         global PLAYER_NUM_UNITS
         global CPU_NUM_UNITS
+        global VICTORY_TEXT
+        VICTORY_TEXT = "Game In Progress. . . "
         PLAYER_NUM_UNITS=self.axis_dim
         CPU_NUM_UNITS=self.axis_dim
         # row
@@ -90,17 +93,22 @@ class Grid:
 
                 elif(i == self.axis_dim-1):
                     self.grid[j][i].ctype=Ctype(((j+1) % 3)+1)
-                    CPU_NUM_UNITS += 1
                 else:
                     if(self.grid[j][i].ctype!=Ctype.HOLE):
                         self.grid[j][i].ctype=Ctype.EMPTY
         self.draw_map()
 # --------------------------------------------------------------------
     def generate_grid(self,dimension_mod):
+        global PLAYER_NUM_UNITS
+        global CPU_NUM_UNITS
+        PLAYER_NUM_UNITS=0
+        CPU_NUM_UNITS=0
         self.axis_dim=3*dimension_mod
         self.grid=None
         self.grid = [[None for _ in range(self.axis_dim)] for _ in range(self.axis_dim)]
+        background.fill((0,0,0))
         self.init_grid()
+        self.draw_map()
 
 # --------------------------------------------------------------------
     def draw_map(self):
@@ -288,14 +296,42 @@ game_status_text = pygame_gui.elements.UILabel(relative_rect = game_status_layou
                                                 'right': 'right',
                                                 'top': 'top',
                                                 'bottom': 'bottom'})
+
+reset_layout = pygame.Rect(0,0,150,40)
+reset_layout.topright = (-70, 140)
+reset_grid_button = pygame_gui.elements.UIButton(relative_rect =reset_layout, text = "Reset Board", manager = manager,
+                                                anchors={'left': 'right',
+                                                'right': 'right',
+                                                'top': 'top',
+                                                'bottom': 'top'})
+
+generate_layout = pygame.Rect(0,0,150,40)
+generate_layout.topright = (-150, 200)
+generate_grid_button = pygame_gui.elements.UIButton(relative_rect =generate_layout, text = "Generate Board", manager = manager,
+                                                anchors={'left': 'right',
+                                                'right': 'right',
+                                                'top': 'top',
+                                                'bottom': 'top'})
+
+dmod_layout = pygame.Rect(0,0,100,40)
+dmod_layout.topright = (-50, 200)
+dmod_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect = dmod_layout, manager = manager,
+                                                        anchors={'left': 'right',
+                                                        'right': 'right',
+                                                        'top': 'top',
+                                                        'bottom': 'top'})
+dmod_text_entry.set_text("1")
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME LOOP ******
         # For testing purposes mainly
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 clock = pygame.time.Clock()
 is_running = True
-grid=Grid(2)
-grid.init_grid()
+grid=Grid(D_MOD)
+grid.generate_grid(D_MOD)
+#print(dmod_text_entry.get_text())
+
+# grid.init_grid()
 # print(grid.grid[5][1].ctype)
 grid.draw_map()
 while is_running:
@@ -312,8 +348,16 @@ while is_running:
 
         if event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                D_MOD = int(dmod_text_entry.get_text())
+                print(f"D_MOD = {D_MOD}")
                 if event.ui_element == hello_button:
                     print('Hello World!')
+                if event.ui_element == reset_grid_button:
+                    print('RESET GRID')
+                    grid.reset_grid()
+                if event.ui_element == generate_grid_button:
+                    print('GENERATE GRID')
+                    grid.generate_grid(D_MOD)
 
     manager.process_events(event)
 
