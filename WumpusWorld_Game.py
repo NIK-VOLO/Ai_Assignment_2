@@ -28,8 +28,8 @@ CLICKED_POS = (-1,-1)
 LAST_CLICKED = CLICKED_POS
 NUM_SELECTED = 0
 PLAYER_SELECTIONS = queue.Queue(3) # QUEUE TO KEEP TRACK OF CONSECUTIVE SELECTS
-PLAYER_NUM_UNITS =
-
+PLAYER_NUM_UNITS = 0
+CPU_NUM_UNITS = 0
 
 
 
@@ -46,6 +46,8 @@ class Grid:
 
 #--------------------------------------------------------------------
     def init_grid(self):
+        global PLAYER_NUM_UNITS
+        global CPU_NUM_UNITS
         gap = GAME_X // self.axis_dim
         print(self.axis_dim/3-1)
         total_spots=list(range(0, self.axis_dim))
@@ -61,8 +63,10 @@ class Grid:
             for j in range(self.axis_dim):
                 if(i==0):
                     cell=Cell(j,i,gap,self.axis_dim,Ctype((j%3)+4))
+                    PLAYER_NUM_UNITS += 1
                 elif(i==self.axis_dim-1):
                     cell = Cell(j,i, gap,self.axis_dim, Ctype((j%3)+1))
+                    CPU_NUM_UNITS += 1
                 else:
                     cell=Cell(j,i,gap,self.axis_dim,Ctype.EMPTY)
                 self.grid[j][i]=cell
@@ -124,6 +128,8 @@ def player_move_unit(grid, event):
     global CLICKED_POS
     global NUM_SELECTED
     global PLAYER_SELECTIONS
+    global PLAYER_NUM_UNITS
+    global CPU_NUM_UNITS
     # Get the row and column of the clicked positin on game board
     if event.type == pygame.MOUSEBUTTONUP:
         pos = pygame.mouse.get_pos()
@@ -173,9 +179,12 @@ def player_move_unit(grid, event):
                  elif code==-2:
                      t_piece.ctype=Ctype.EMPTY
                      p_piece.ctype=Ctype.EMPTY
+                     PLAYER_NUM_UNITS -= 1
+                     CPU_NUM_UNITS -= 1
                  #t_piece dies
                  elif code==1:
                      #code to subtract from total pieces here
+                     CPU_NUM_UNITS -= 1
                      t_piece.ctype=p_piece.ctype
                      p_piece.ctype=Ctype.EMPTY
                  #p_piece dies
@@ -183,13 +192,14 @@ def player_move_unit(grid, event):
                      print('here')
                      p_piece.ctype=Ctype.EMPTY
                      print(p_piece)
+                     PLAYER_NUM_UNITS -= 1
                  elif code==-4:
                      print('Probably a bug?')
 
                  t_piece.draw(background)
                  p_piece.draw(background)
 
-
+                 print(f"PLAYER PIECES ({PLAYER_NUM_UNITS}) ---- CPU PIECES ({CPU_NUM_UNITS})")
 
                  #A method to check if the player or the cpu won should go here
                  return
@@ -201,7 +211,7 @@ def player_move_unit(grid, event):
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        # ***** BUTTONS  ******
+        # ***** UI ELEMENTS  ******
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 button_layout_rect = pygame.Rect(0, 0, 100, 50)
 button_layout_rect.topright = (-30,20)
@@ -210,6 +220,14 @@ hello_button = pygame_gui.elements.UIButton(relative_rect=button_layout_rect, te
                                              'right': 'right',
                                              'top': 'top',
                                              'bottom': 'top'})
+
+cpu_score_layout = pygame.Rect(0,0,150,40)
+cpu_score_layout.topright = (-138, 20)
+cpu_score_text = pygame_gui.elements.UITextBox(relative_rect = cpu_score_layout, html_text = "CPU Pieces: " + str(CPU_NUM_UNITS), manager = manager,
+                                                anchors={'left': 'right',
+                                                'right': 'right',
+                                                'top': 'top',
+                                                'bottom': 'top'})
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME LOOP ******
