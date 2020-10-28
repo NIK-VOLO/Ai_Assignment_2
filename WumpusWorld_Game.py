@@ -238,11 +238,19 @@ hello_button = pygame_gui.elements.UIButton(relative_rect=button_layout_rect, te
 
 cpu_score_layout = pygame.Rect(0,0,150,40)
 cpu_score_layout.topright = (-138, 20)
-cpu_score_text = pygame_gui.elements.UITextBox(relative_rect = cpu_score_layout, html_text = "CPU Pieces: " + str(CPU_NUM_UNITS), manager = manager,
+cpu_score_text = pygame_gui.elements.UILabel(relative_rect = cpu_score_layout, text = "CPU Pieces: " + str(CPU_NUM_UNITS), manager = manager,
                                                 anchors={'left': 'right',
                                                 'right': 'right',
                                                 'top': 'top',
                                                 'bottom': 'top'})
+
+player_score_layout = pygame.Rect(0,0,150,40)
+player_score_layout.bottomright = (-138, -20)
+player_score_text = pygame_gui.elements.UILabel(relative_rect = player_score_layout, text = "Player Pieces: " + str(PLAYER_NUM_UNITS), manager = manager,
+                                                anchors={'left': 'right',
+                                                'right': 'right',
+                                                'top': 'bottom',
+                                                'bottom': 'bottom'})
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME LOOP ******
@@ -261,7 +269,8 @@ while is_running:
             is_running = False
 
         player_move_unit(grid, event)
-
+        cpu_score_text.set_text("CPU Pieces: " + str(CPU_NUM_UNITS))
+        player_score_text.set_text("PLAYER Pieces: " + str(PLAYER_NUM_UNITS))
         if event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == hello_button:
