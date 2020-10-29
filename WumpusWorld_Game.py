@@ -264,14 +264,16 @@ def h_val(node,maximizingPlayer):
 
 def get_piece_list(grid, maximizingPlayer):
     pieces=list()
+    #col
     for i in range(grid.axis_dim):
+        #range
         for j in range(grid.axis_dim):
             if(maximizingPlayer):
-                if 4<=grid[i][j].ctype<=6:
-                    pieces.append(grid[i][j])
+                if grid[i][j][0]=='C':
+                    pieces.append(f'{i},{j}')
             else:
-                if 1<=grid[i][j].ctype<=3:
-                    pieces.append(grid[i][j])
+                if grid[i][j][0]=='P':
+                    pieces.append(f'{i},{j}')
     return pieces
 
 # Gets the cells around the piece that have valid moves
@@ -340,40 +342,40 @@ def get_neighbors_string(pair, array, maximizingPlayer):
     return neighbors
 
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
-    return #TEMPORARY
-    # if depth==0 or is_terminal(node):
-    #     return node.h_val
-    # if maximizingPlayer:
-    #     value=float('-inf')
-    #     p_queue=[]
-    #     #------------------------------------------------
-    #     #create the childs of the current board state
-    #     pieces = get_piece_list(grid, maximizingPlayer)
-    #     print(pieces)
-    #     #------------------------------------------------
-    #     # Get neighbors of
-    #     for n in :
-    #         p_queue.push(child,h_val(child))
-    #
-    #     while child=p_queue.pop():
-    #         value=max(value,alphabeta(child,depth-1,alpha,beta,False))
-    #         alpha=max(alpha,value)
-    #         if(alpha>=beta):
-    #             pass
-    #     return value
-    # else:
-    #     value=float('inf')
-    #
-    #     #create the childs of the current board state
-    #     for each child:
-    #         #add child to queue
-    #
-    #     while child=p_queue.pop():
-    #         value=max(value,alphabeta(child,depth-1,alpha,beta,True))
-    #         alpha=max(alpha,value)
-    #         if(alpha>=beta):
-    #             pass
-#structure of node: (cell, grid,cpunumpieices,playernumpieces)
+    #return #TEMPORARY
+    if depth==0 or is_terminal(node):
+        return node.h_val
+    if maximizingPlayer:
+        value=float('-inf')
+        p_queue=[]
+        #------------------------------------------------
+        #create the childs of the current board state
+        pieces = get_piece_list(grid, maximizingPlayer)
+        print(pieces)
+        #------------------------------------------------
+        # Get neighbors of
+        for n in :
+            p_queue.push(child,h_val(child))
+    
+        while child=p_queue.pop():
+            value=max(value,alphabeta(child,depth-1,alpha,beta,False))
+            alpha=max(alpha,value)
+            if(alpha>=beta):
+                pass
+        return value
+    else:
+        value=float('inf')
+    
+        #create the childs of the current board state
+        for each child:
+            #add child to queue
+    
+        while child=p_queue.pop():
+            value=max(value,alphabeta(child,depth-1,alpha,beta,True))
+            alpha=max(alpha,value)
+            if(alpha>=beta):
+                pass
+structure of node: (cell, grid,cpunumpieices,playernumpieces)
 
 
 
