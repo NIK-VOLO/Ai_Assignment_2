@@ -240,9 +240,64 @@ def player_move_unit(grid, event):
                 VICTORY_TEXT = check_win()
 
                  # A method to check if the player or the cpu won should go here
+                 alphabeta((grid,CPU_NUM_UNITS,player_move_unit),5,1,1,True)
                 return
             else:
                 print("select another to move")
+
+def is_terminal(node):
+    if(node[1]==0):
+        return True
+    elif(node[2]==0):
+        return True
+    return False
+
+def h_val(node,maximizingPlayer):
+    if maximizingPlayer:
+        return node[1]-node[2]
+    else:
+        return node[2]-node[1]
+
+
+
+def alphabeta(node,depth,alpha,beta,maximizingPlayer):
+    if depth==0 or is_terminal(node):
+        return node.h_val
+    if maximizingPlayer:
+        value=float('-inf')
+        p_queue=[]
+        #create the childs of the current board state
+
+        for each child:
+            p_queue.push(child,h_val(child))
+
+        while child=p_queue.pop():
+            value=max(value,alphabeta(child,depth-1,alpha,beta,False))
+            alpha=max(alpha,value)
+            if(alpha>=beta):
+                pass
+        return value
+    else:
+        value=float('inf')
+
+        #create the childs of the current board state
+        for each child:
+            #add child to queue
+
+        while child=p_queue.pop():
+            value=max(value,alphabeta(child,depth-1,alpha,beta,True))
+            alpha=max(alpha,value)
+            if(alpha>=beta):
+                pass
+#structure of node: (grid,cpunumpieices,playernumpieces)
+
+
+
+
+
+
+
+
 # Check if the game has ended
 # Returns:
 # 0 if tie
