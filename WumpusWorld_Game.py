@@ -112,6 +112,29 @@ class Grid:
         self.draw_map()
 
 # --------------------------------------------------------------------
+    def gen_string_board(self):
+        string_board=[[None for _ in range(self.axis_dim)] for _ in range(self.axis_dim)]
+        for i in range(self.axis_dim):
+            for j in range(self.axis_dim):
+                x=self.grid[i][j].ctype
+                if(x==1):
+                    string_board[i].append('PM')
+                elif(x==2):
+                    string_board[i].append('PW')
+                elif(x==3):
+                    string_board[i].append('PK')
+                elif(x==4):
+                    string_board[i].append('CM')
+                elif(x==5):
+                    string_board[i].append('CW')
+                elif(x==6):
+                    string_board[i].append('CK')
+                elif(x==7):
+                    string_board[i].append('H')
+                elif(x==8):
+                    string_board[i].append('-')
+        return string_board
+# --------------------------------------------------------------------
     def draw_map(self):
         gap = GAME_X//self.axis_dim
         # print(gap)
@@ -244,7 +267,8 @@ def player_move_unit(grid, event):
                 VICTORY_TEXT = check_win()
 
                  # A method to check if the player or the cpu won should go here
-                alphabeta((grid,CPU_NUM_UNITS,PLAYER_NUM_UNITS),5,1,1,True)
+                str_board=grid.gen_string_board()
+                alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),5,1,1,True)
                 return
             else:
                 print("select another to move")
@@ -352,9 +376,14 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         #create the childs of the current board state
         pieces = get_piece_list(grid, maximizingPlayer)
         print(pieces)
+        game_states=list()
+        
+        for i in pieces:
+            neighbors=get_neighbors_string(i,node[0],True)
+            game_states.extend(get_child_states(node,neighbors))
         #------------------------------------------------
         # Get neighbors of
-        for n in :
+        for child in game_states:
             p_queue.push(child,h_val(child))
     
         while child=p_queue.pop():
