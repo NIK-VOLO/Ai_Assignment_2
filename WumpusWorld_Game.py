@@ -320,13 +320,13 @@ def check_win():
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** UI ELEMENTS  ******
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
-button_layout_rect = pygame.Rect(0, 0, 100, 50)
-button_layout_rect.topright = (-30,70)
-hello_button = pygame_gui.elements.UIButton(relative_rect=button_layout_rect, text='Say Hello', manager=manager,
-                                             anchors={'left': 'right',
-                                             'right': 'right',
-                                             'top': 'top',
-                                             'bottom': 'top'})
+# button_layout_rect = pygame.Rect(0, 0, 100, 50)
+# button_layout_rect.topright = (-30,70)
+# hello_button = pygame_gui.elements.UIButton(relative_rect=button_layout_rect, text='Say Hello', manager=manager,
+#                                              anchors={'left': 'right',
+#                                              'right': 'right',
+#                                              'top': 'top',
+#                                              'bottom': 'top'})
 
 cpu_score_layout = pygame.Rect(0,0,150,40)
 cpu_score_layout.topright = (-138, 70)
@@ -368,7 +368,7 @@ generate_grid_button = pygame_gui.elements.UIButton(relative_rect =generate_layo
                                                 'top': 'top',
                                                 'bottom': 'top'})
 
-dmod_layout = pygame.Rect(0,0,100,40)
+dmod_layout = pygame.Rect(0,0,50,40)
 dmod_layout.topright = (-50, 200)
 dmod_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect = dmod_layout, manager = manager,
                                                         anchors={'left': 'right',
@@ -405,8 +405,8 @@ while is_running:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 D_MOD = int(dmod_text_entry.get_text())
                 print(f"D_MOD = {D_MOD}")
-                if event.ui_element == hello_button:
-                    print('Hello World!')
+                # if event.ui_element == hello_button:
+                #     print('Hello World!')
                 if event.ui_element == reset_grid_button:
                     print('RESET GRID')
                     grid.reset_grid()
