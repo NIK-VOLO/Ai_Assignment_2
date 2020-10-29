@@ -187,6 +187,7 @@ def player_move_unit(grid, event):
             elif cell.selected == False and NUM_SELECTED < 2:
                 if NUM_SELECTED == 0 and (1 <= cell.ctype <= 3):
                     update_selected(cell)
+                    #get_neighbors(cell,grid, True)
                 elif NUM_SELECTED == 0 and (4 <= cell.ctype <= 8):
                     print("Please select a friendly piece first!")
                 elif NUM_SELECTED > 0 and (4 <= cell.ctype <= 8):
@@ -237,6 +238,8 @@ def player_move_unit(grid, event):
                 t_piece.draw(background)
                 p_piece.draw(background)
 
+
+
                 print(f"PLAYER PIECES ({PLAYER_NUM_UNITS}) ---- CPU PIECES ({CPU_NUM_UNITS})")
                 VICTORY_TEXT = check_win()
 
@@ -247,37 +250,76 @@ def player_move_unit(grid, event):
                 print("select another to move")
 
 def is_terminal(node):
-    if(node[1]==0):
+    if(node[2]==0):
         return True
-    elif(node[2]==0):
+    elif(node[3]==0):
         return True
     return False
 
 def h_val(node,maximizingPlayer):
     if maximizingPlayer:
-        return node[1]-node[2]
+        return node[2]-node[3]
     else:
-        return node[2]-node[1]
+        return node[3]-node[2]
 
+def get_piece_list(grid, maximizingPlayer):
+    pieces=list()
+    for i in range(grid.axis_dim):
+        for j in range(grid.axis_dim):
+            if(maximizingPlayer):
+                if 4<=grid[i][j].ctype<=6:
+                    pieces.append(grid[i][j])
+            else:
+                if 1<=grid[i][j].ctype<=3:
+                    pieces.append(grid[i][j])
+    return pieces
 
+# Gets the cells around the piece that have valid moves
+# --> If the cell has a pit, we assume that it's a bad move and don't add it to the list
+# --> Depending on if the turn is maximizingPlayer or not, add cells containing enemy units but ignore friendly units
+def get_neighbors(cell, grid, maximizingPlayer):
+    global D_MOD
+    neighbors = []
+    board_size = D_MOD * 3
+    for j in range(3):
+        for i in range(3):
+            #print(f'{cell.col-1+i}, {cell.row-1+j}')
+            if(i == 1 and j == 1): # the current cell is self, don't check
+                continue
+            if(cell.col-1+i > board_size -1 or cell.col-1+i < 0 or cell.row-1+j > board_size -1 or cell.row-1+j < 0):
+                #print(f"({i},{j}) OUT OF BOUNDS")
+                continue
+            if(grid.grid[cell.col-1+i][cell.row-1+j].ctype == Ctype.HOLE):
+                #print(f"({i},{j}) IS A HOLE")                                        #------------- THIS MIGHT NEED OPTIZING ------------------
+                continue
+            #Check maximizingPlayer:
+            # Assume player is maximizingPlayer
+            if not maximizingPlayer:
+                if 1 <= grid.grid[cell.col-1+i][cell.row-1+j].ctype <= 3:
+                    #print(f"({i},{j}) IS A MAXimizingPlayer FRIENDLY PIECE (ignore)")
+                    continue
+            else:
+                if 4 <= grid.grid[cell.col-1+i][cell.row-1+j].ctype <= 6:
+                    #print(f"({i},{j}) IS A MINImizingPlayer FRIENDLY PIECE (ignore)")
+                    continue
+            #print(f"({i},{j}) is VALID")
+            neighbors.append(grid.grid[cell.col-1+i][cell.row-1+j])
+    return neighbors
 
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
+    #return #TEMPORARY
     if depth==0 or is_terminal(node):
         return node.h_val
     if maximizingPlayer:
         value=float('-inf')
         p_queue=[]
+        #------------------------------------------------
         #create the childs of the current board state
-        pieces=list()
-        for i in range(grid.axis_dim):
-            for j in range(grid.axis_dim):
-                if(maximizingPlayer):
-                    if 4<=grid[i][j].ctype<=6:
-                        pieces.append(grid[i][j])
-                else:
-                    if 1<=grid[i][j].ctype<=3:
-                        pieces.append(grid[i][j])
-        for each child:
+        pieces = get_piece_list(grid, maximizingPlayer)
+        print(pieces)
+        #------------------------------------------------
+        # Get neighbors of
+        for n in :
             p_queue.push(child,h_val(child))
 
         while child=p_queue.pop():
@@ -298,7 +340,7 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
             alpha=max(alpha,value)
             if(alpha>=beta):
                 pass
-#structure of node: (grid,cpunumpieices,playernumpieces)
+#structure of node: (cell, grid,cpunumpieices,playernumpieces)
 
 
 
@@ -398,6 +440,13 @@ grid.generate_grid(D_MOD)
 # grid.init_grid()
 # print(grid.grid[5][1].ctype)
 grid.draw_map()
+
+# neighbors = get_neighbors(grid.grid[0][1], grid, False)
+# for n in neighbors:
+#     print(n.ctype)
+
+
+
 while is_running:
     time_delta = clock.tick(60)/1000.0
     for event in pygame.event.get():
