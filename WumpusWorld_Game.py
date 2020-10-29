@@ -306,40 +306,73 @@ def get_neighbors(cell, grid, maximizingPlayer):
             neighbors.append(grid.grid[cell.col-1+i][cell.row-1+j])
     return neighbors
 
+def get_neighbors_string(pair, array, maximizingPlayer):
+    global D_MOD
+    col = pair[0]
+    row = pair[1]
+    neighbors = []
+    board_size = D_MOD * 3
+    for j in range(3):
+        for i in range(3):
+            #print(f'{cell.col-1+i}, {cell.row-1+j}')
+            if(i == 1 and j == 1): # the current cell is self, don't check
+                continue
+            if(col-1+i > board_size -1 or col-1+i < 0 or row-1+j > board_size -1 or row-1+j < 0):
+                #print(f"({i},{j}) OUT OF BOUNDS")
+                continue
+            if(array[col-1+i][row-1+j] == 'H'):
+                #print(f"({i},{j}) IS A HOLE")                                        #------------- THIS MIGHT NEED OPTIZING ------------------
+                continue
+            #Check maximizingPlayer:
+            # Assume player is maximizingPlayer
+            if not maximizingPlayer:
+                #if 1 <= array[cell.col-1+i][cell.row-1+j].ctype <= 3:
+                if array[col-1+i][row-1+j][0] == 'C':
+                    #print(f"({i},{j}) IS A MAXimizingPlayer FRIENDLY PIECE (ignore)")
+                    continue
+            else:
+                #if 4 <= grid.grid[cell.col-1+i][cell.row-1+j].ctype <= 6:
+                if array[col-1+i][row-1+j][0] == 'P':
+                    #print(f"({i},{j}) IS A MINImizingPlayer FRIENDLY PIECE (ignore)")
+                    continue
+            #print(f"({i},{j}) is VALID")
+            neighbors.append((array[col-1+i][row-1+j],col-1+i,row-1+j))
+    return neighbors
+
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
-    #return #TEMPORARY
-    if depth==0 or is_terminal(node):
-        return node.h_val
-    if maximizingPlayer:
-        value=float('-inf')
-        p_queue=[]
-        #------------------------------------------------
-        #create the childs of the current board state
-        pieces = get_piece_list(grid, maximizingPlayer)
-        print(pieces)
-        #------------------------------------------------
-        # Get neighbors of
-        for n in :
-            p_queue.push(child,h_val(child))
-
-        while child=p_queue.pop():
-            value=max(value,alphabeta(child,depth-1,alpha,beta,False))
-            alpha=max(alpha,value)
-            if(alpha>=beta):
-                pass
-        return value
-    else:
-        value=float('inf')
-
-        #create the childs of the current board state
-        for each child:
-            #add child to queue
-
-        while child=p_queue.pop():
-            value=max(value,alphabeta(child,depth-1,alpha,beta,True))
-            alpha=max(alpha,value)
-            if(alpha>=beta):
-                pass
+    return #TEMPORARY
+    # if depth==0 or is_terminal(node):
+    #     return node.h_val
+    # if maximizingPlayer:
+    #     value=float('-inf')
+    #     p_queue=[]
+    #     #------------------------------------------------
+    #     #create the childs of the current board state
+    #     pieces = get_piece_list(grid, maximizingPlayer)
+    #     print(pieces)
+    #     #------------------------------------------------
+    #     # Get neighbors of
+    #     for n in :
+    #         p_queue.push(child,h_val(child))
+    #
+    #     while child=p_queue.pop():
+    #         value=max(value,alphabeta(child,depth-1,alpha,beta,False))
+    #         alpha=max(alpha,value)
+    #         if(alpha>=beta):
+    #             pass
+    #     return value
+    # else:
+    #     value=float('inf')
+    #
+    #     #create the childs of the current board state
+    #     for each child:
+    #         #add child to queue
+    #
+    #     while child=p_queue.pop():
+    #         value=max(value,alphabeta(child,depth-1,alpha,beta,True))
+    #         alpha=max(alpha,value)
+    #         if(alpha>=beta):
+    #             pass
 #structure of node: (cell, grid,cpunumpieices,playernumpieces)
 
 
@@ -441,9 +474,16 @@ grid.generate_grid(D_MOD)
 # print(grid.grid[5][1].ctype)
 grid.draw_map()
 
-# neighbors = get_neighbors(grid.grid[0][1], grid, False)
+# array =[    ('Cw',  'Ch',   'Cm'),
+#             ('-',   '-',    '-'),
+#             ('Pw',  'Ph',   'Pm')   ]
+# # print(array[0][1][0])
+#
+# neighbors = get_neighbors_string((2,0), array, False)
 # for n in neighbors:
-#     print(n.ctype)
+#     print(n)
+
+
 
 
 
