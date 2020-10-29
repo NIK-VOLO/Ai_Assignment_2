@@ -28,6 +28,10 @@ class Cell:
         self.innerRect=pygame.Rect(self.x+2,self.y+2,self.size-1,self.size-1)
         #self.font = pygame.font.SysFont(NONE, 12)
 
+
+    def contains_piece(self,other):
+        return self.ctype<7
+
     def __str__(self):
         return f'({self.col},{self.row}),{self.get_type_text()}'
     #Called when a cell is clicked on,

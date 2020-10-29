@@ -3,6 +3,7 @@ import pygame_gui
 import random
 from map_cell import *
 import queue
+from itertools import chain
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME WINDOW INITIALIZATION  ******
@@ -240,7 +241,7 @@ def player_move_unit(grid, event):
                 VICTORY_TEXT = check_win()
 
                  # A method to check if the player or the cpu won should go here
-                 alphabeta((grid,CPU_NUM_UNITS,player_move_unit),5,1,1,True)
+                alphabeta((grid,CPU_NUM_UNITS,PLAYER_NUM_UNITS),5,1,1,True)
                 return
             else:
                 print("select another to move")
@@ -267,7 +268,15 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         value=float('-inf')
         p_queue=[]
         #create the childs of the current board state
-
+        pieces=list()
+        for i in range(grid.axis_dim):
+            for j in range(grid.axis_dim):
+                if(maximizingPlayer):
+                    if 4<=grid[i][j].ctype<=6:
+                        pieces.append(grid[i][j])
+                else:
+                    if 1<=grid[i][j].ctype<=3:
+                        pieces.append(grid[i][j])
         for each child:
             p_queue.push(child,h_val(child))
 
