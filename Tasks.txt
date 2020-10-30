@@ -1,0 +1,3 @@
+  - Make a method in grid to make string board from current grid state --> pass string board to alphabeta()
+  - Create game states from possible moves (String board)
+  - Create children (string board) of current game state

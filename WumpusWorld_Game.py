@@ -377,7 +377,7 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         pieces = get_piece_list(grid, maximizingPlayer)
         print(pieces)
         game_states=list()
-        
+
         for i in pieces:
             neighbors=get_neighbors_string(i,node[0],True)
             game_states.extend(get_child_states(node,neighbors))
@@ -385,7 +385,7 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         # Get neighbors of
         for child in game_states:
             p_queue.push(child,h_val(child))
-    
+
         while child=p_queue.pop():
             value=max(value,alphabeta(child,depth-1,alpha,beta,False))
             alpha=max(alpha,value)
@@ -394,17 +394,17 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         return value
     else:
         value=float('inf')
-    
+
         #create the childs of the current board state
         for each child:
             #add child to queue
-    
+
         while child=p_queue.pop():
             value=max(value,alphabeta(child,depth-1,alpha,beta,True))
             alpha=max(alpha,value)
             if(alpha>=beta):
                 pass
-structure of node: (cell, grid,cpunumpieices,playernumpieces)
+#structure of node: (cell, grid,cpunumpieices,playernumpieces)
 
 
 
