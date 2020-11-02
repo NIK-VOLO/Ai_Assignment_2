@@ -4,6 +4,7 @@ import random
 from map_cell import *
 import queue
 import heapq
+import copy
 from itertools import chain
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -286,9 +287,9 @@ def is_terminal(node):
 # Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer):
     if maximizingPlayer:
-        return node[2]-node[3]
+        return node[1]-node[2]
     else:
-        return node[3]-node[2]
+        return node[2]-node[1]
 
 
 # Reads the string board and returns the  coordinate pairs of the pieces of the current player
@@ -392,7 +393,7 @@ def swap(coord1,coord2,array):
 
 #returns the board state created by moving the piece at coord1 to coord2
 def get_child_state(coord1,coord2,node,maximizingPlayer):
-    array=node[0].copy()
+    array=copy.deepcopy(node[0])
     cpu_pieces=node[1]
     p_pieces=node[2]
     c1_type=array[coord1[0]][coord1[1]]
@@ -471,12 +472,16 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         print('pieces')
         print(pieces)
         game_states=list()
+        print('node0 before')
+        print(node[0])
         for i in pieces:
             print(f"Current Piece:{i}")
             neighbors=get_neighbors_string(i,node[0],True)
             print(f'all neighbors:{neighbors}')
             for size in range(len(neighbors)):
                 game_states.append(get_child_state(i,neighbors[size],node,maximizingPlayer))
+                print('node[0] after')
+                print(node[0])
         #------------------------------------------------
         # Get neighbors of
         for child in game_states:
