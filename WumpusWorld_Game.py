@@ -271,6 +271,7 @@ def player_move_unit(grid, event):
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
                 x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,1,2,True)
+                print('end')
                 print(x)
                 return
             else:
@@ -397,9 +398,6 @@ def get_child_state(coord1,coord2,node,maximizingPlayer):
     cpu_pieces=node[1]
     p_pieces=node[2]
     c1_type=array[coord1[0]][coord1[1]]
-    print('c1type:')
-    print(coord1)
-    print(c1_type)
     c2_type=array[coord2[0]][coord2[1]]
     if(c2_type[0]=='-'):
         array=swap(coord1,coord2,array)
@@ -416,14 +414,14 @@ def get_child_state(coord1,coord2,node,maximizingPlayer):
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                cpu_pieces+=1
+                cpu_pieces-=1
         elif not maximizingPlayer:
             if winner==1:
                 cpu_pieces-=1
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                p_pieces+=1
+                p_pieces-=1
         else:
             print('error?')
     return (array,cpu_pieces,p_pieces)
@@ -460,36 +458,32 @@ def string_fight(piece1,piece2):
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     #return #TEMPORARY
     if depth==0 or is_terminal(node):
-        return node.h_val
+        return h_val(node,maximizingPlayer)
+    str_grid=node[0]
     if maximizingPlayer:
-        str_grid=node[0]
         value=float('-inf')
         p_queue=[]
         heapq.heapify(p_queue)
         #------------------------------------------------
         #create the childs of the current board state
         pieces = get_piece_list(str_grid, maximizingPlayer)
-        print('pieces')
-        print(pieces)
         game_states=list()
-        print('node0 before')
-        print(node[0])
         for i in pieces:
-            print(f"Current Piece:{i}")
             neighbors=get_neighbors_string(i,node[0],True)
-            print(f'all neighbors:{neighbors}')
             for size in range(len(neighbors)):
                 game_states.append(get_child_state(i,neighbors[size],node,maximizingPlayer))
-                print('node[0] after')
-                print(node[0])
         #------------------------------------------------
         # Get neighbors of
         for child in game_states:
             heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
-        
+        print('length')
+        print(len(p_queue))
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            value=max(value,alphabeta(child,depth-1,alpha,beta,False))
+            print(child)
+            # print('temp_val')
+            # print(temp_val)
+            value=max(value,alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False))
             alpha=max(alpha,value)
             if(alpha>=beta):
                 pass
@@ -502,16 +496,18 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         game_states=list()
         for i in pieces:
             neighbors=get_neighbors_string(i,node[0],False)
-            game_states.extend(get_child_state(i,neighbors,node,maximizingPlayer))
+            for size in range(len(neighbors)):
+                game_states.append(get_child_state(i,neighbors[size],node,maximizingPlayer))
         for child in game_states:
             heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
             #add child to queue
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            value=max(value,alphabeta(child,depth-1,alpha,beta,True))
+            value=min(value,alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,True))
             alpha=max(alpha,value)
             if(alpha>=beta):
                 pass
+        return value
 #structure of node: (cell, grid,cpunumpieices,playernumpieces)
 
 
