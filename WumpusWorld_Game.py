@@ -3,6 +3,7 @@ import pygame_gui
 import random
 from map_cell import *
 import queue
+import heapq
 from itertools import chain
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -118,21 +119,21 @@ class Grid:
             for j in range(self.axis_dim):
                 x=self.grid[i][j].ctype
                 if(x==1):
-                    string_board[i].append('PM')
+                    string_board[i][j]=('PM')
                 elif(x==2):
-                    string_board[i].append('PW')
+                    string_board[i][j]=('PW')
                 elif(x==3):
-                    string_board[i].append('PK')
+                    string_board[i][j]=('PK')
                 elif(x==4):
-                    string_board[i].append('CM')
+                    string_board[i][j]=('CM')
                 elif(x==5):
-                    string_board[i].append('CW')
+                    string_board[i][j]=('CW')
                 elif(x==6):
-                    string_board[i].append('CK')
+                    string_board[i][j]=('CK')
                 elif(x==7):
-                    string_board[i].append('H')
+                    string_board[i][j]=('H')
                 elif(x==8):
-                    string_board[i].append('-')
+                    string_board[i][j]=('-')
         return string_board
 # --------------------------------------------------------------------
     def draw_map(self):
@@ -268,36 +269,41 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),5,1,1,True)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,1,2,True)
+                print(x)
                 return
             else:
                 print("select another to move")
 
 def is_terminal(node):
-    if(node[2]==0):
+    if(node[1]==0):
         return True
-    elif(node[3]==0):
+    elif(node[2]==0):
         return True
     return False
 
+
+# Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer):
     if maximizingPlayer:
         return node[2]-node[3]
     else:
         return node[3]-node[2]
 
-def get_piece_list(grid, maximizingPlayer):
+
+# Reads the string board and returns the  coordinate pairs of the pieces of the current player
+def get_piece_list(str_grid, maximizingPlayer):
     pieces=list()
     #col
     for i in range(grid.axis_dim):
         #range
         for j in range(grid.axis_dim):
             if(maximizingPlayer):
-                if grid[i][j][0]=='C':
-                    pieces.append(f'{i},{j}')
+                if str_grid[i][j][0]=='C':
+                    pieces.append([i,j])
             else:
-                if grid[i][j][0]=='P':
-                    pieces.append(f'{i},{j}')
+                if str_grid[i][j][0]=='P':
+                    pieces.append((i,j))
     return pieces
 
 # Gets the cells around the piece that have valid moves
@@ -332,6 +338,7 @@ def get_neighbors(cell, grid, maximizingPlayer):
             neighbors.append(grid.grid[cell.col-1+i][cell.row-1+j])
     return neighbors
 
+
 def get_neighbors_string(pair, array, maximizingPlayer):
     global D_MOD
     col = pair[0]
@@ -351,7 +358,7 @@ def get_neighbors_string(pair, array, maximizingPlayer):
                 continue
             #Check maximizingPlayer:
             # Assume player is maximizingPlayer
-            if not maximizingPlayer:
+            if maximizingPlayer:
                 #if 1 <= array[cell.col-1+i][cell.row-1+j].ctype <= 3:
                 if array[col-1+i][row-1+j][0] == 'C':
                     #print(f"({i},{j}) IS A MAXimizingPlayer FRIENDLY PIECE (ignore)")
@@ -362,31 +369,121 @@ def get_neighbors_string(pair, array, maximizingPlayer):
                     #print(f"({i},{j}) IS A MINImizingPlayer FRIENDLY PIECE (ignore)")
                     continue
             #print(f"({i},{j}) is VALID")
-            neighbors.append((array[col-1+i][row-1+j],col-1+i,row-1+j))
+            #neighbors.append((array[col-1+i][row-1+j],col-1+i,row-1+j))
+            neighbors.append((col-1+i,row-1+j))
     return neighbors
+
+
+#
+def win_swap(coord1,coord2,array):
+    array[coord2[0]][coord2[1]]=array[coord1[0]][coord1[1]]
+    array[coord1[0]][coord1[1]]='-'
+    return array
+
+def loss_swap(coord1,coord2,array):
+    array[coord1[0]][coord1[1]]='-'
+    return array
+
+def swap(coord1,coord2,array):
+    temp=array[coord1[0]][coord1[1]]
+    array[coord1[0]][coord1[1]]=array[coord2[0]][coord2[1]]
+    array[coord2[0]][coord2[1]]=temp
+    return array
+
+#returns the board state created by moving the piece at coord1 to coord2
+def get_child_state(coord1,coord2,node,maximizingPlayer):
+    array=node[0].copy()
+    cpu_pieces=node[1]
+    p_pieces=node[2]
+    c1_type=array[coord1[0]][coord1[1]]
+    print('c1type:')
+    print(coord1)
+    print(c1_type)
+    c2_type=array[coord2[0]][coord2[1]]
+    if(c2_type[0]=='-'):
+        array=swap(coord1,coord2,array)
+    else:
+        winner=string_fight(c1_type,c2_type)
+        if winner==-2:
+            cpu_pieces-=1
+            p_pieces-=1
+            array[coord2[0]][coord2[1]]='-'
+            array[coord1[0]][coord1[1]]='-'
+        elif maximizingPlayer:
+            if winner==1:
+                p_pieces-=1
+                array=win_swap(coord1,coord2,array)
+            elif winner==-1:
+                array=loss_swap(coord1,coord2,array)
+                cpu_pieces+=1
+        elif not maximizingPlayer:
+            if winner==1:
+                cpu_pieces-=1
+                array=win_swap(coord1,coord2,array)
+            elif winner==-1:
+                array=loss_swap(coord1,coord2,array)
+                p_pieces+=1
+        else:
+            print('error?')
+    return (array,cpu_pieces,p_pieces)
+
+
+
+# Simulates piece 1 landing on top of piece 2 on the string_grid
+# returns 1 if piece1 wins and -1 piece 2 wins, and -2 if both die
+# Returns 0 if there is an error, probably
+def string_fight(piece1,piece2):
+    p1_type=piece1[1]
+    p2_type=piece2[1]
+    if p1_type==p2_type:
+        return -2
+    if p1_type=='M':
+        if p2_type=='K':
+            return 1
+        elif p2_type=='W':
+            return -1
+    if p1_type=='K':
+        if(p2_type=='M'):
+            return -1
+        elif p2_type=='W':
+            return 1
+    if p1_type=='W':
+        if p2_type=='M':
+            return 1
+        elif p2_type=='K':
+            return -1
+    return 0
+
+
 
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     #return #TEMPORARY
     if depth==0 or is_terminal(node):
         return node.h_val
     if maximizingPlayer:
+        str_grid=node[0]
         value=float('-inf')
         p_queue=[]
+        heapq.heapify(p_queue)
         #------------------------------------------------
         #create the childs of the current board state
-        pieces = get_piece_list(grid, maximizingPlayer)
+        pieces = get_piece_list(str_grid, maximizingPlayer)
+        print('pieces')
         print(pieces)
         game_states=list()
-
         for i in pieces:
+            print(f"Current Piece:{i}")
             neighbors=get_neighbors_string(i,node[0],True)
-            game_states.extend(get_child_states(node,neighbors))
+            print(f'all neighbors:{neighbors}')
+            for size in range(len(neighbors)):
+                game_states.append(get_child_state(i,neighbors[size],node,maximizingPlayer))
         #------------------------------------------------
         # Get neighbors of
         for child in game_states:
-            p_queue.push(child,h_val(child))
-
-        while child=p_queue.pop():
+            heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
+        
+        while len(p_queue)>0:
+            child=heapq.heappop(p_queue)
             value=max(value,alphabeta(child,depth-1,alpha,beta,False))
             alpha=max(alpha,value)
             if(alpha>=beta):
@@ -394,12 +491,18 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         return value
     else:
         value=float('inf')
-
-        #create the childs of the current board state
-        for each child:
+        p_queue=[]
+        heapq.heapify(p_queue)
+        pieces=get_piece_list(str_grid,maximizingPlayer)
+        game_states=list()
+        for i in pieces:
+            neighbors=get_neighbors_string(i,node[0],False)
+            game_states.extend(get_child_state(i,neighbors,node,maximizingPlayer))
+        for child in game_states:
+            heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
             #add child to queue
-
-        while child=p_queue.pop():
+        while len(p_queue)>0:
+            child=heapq.heappop(p_queue)
             value=max(value,alphabeta(child,depth-1,alpha,beta,True))
             alpha=max(alpha,value)
             if(alpha>=beta):
