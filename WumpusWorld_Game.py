@@ -270,9 +270,10 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),5,2,5,True)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,2,5,True)
                 print('end')
-                print(x)
+                #print(x)
+                print_string_state(x)
                 return
             else:
                 print("select another to move")
@@ -457,7 +458,22 @@ def string_fight(piece1,piece2):
     print('ERROR IN STRING_FIGHT')
     return 0
 
+def print_string_board(board):
+    global D_MOD
+    #print("-----------------------------------")
+    #print("BOARD STATE:")
+    for i in range(3 * D_MOD):
+        print('\n')
+        for j in range(3 * D_MOD):
+            print(board[j][i], end = '\t')
+    print("\n")
 
+def print_string_state(state):
+    print("-----------------------------------\nBOARD STATE:")
+    print(f"HVAL: {state[0]}")
+    print(f"PIECES: {state[1][1]},{state[1][2]}")
+    print_string_board(state[1][0])
+    print("-----------------------------------")
 
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     #return #TEMPORARY
@@ -485,7 +501,9 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         print(len(p_queue))
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            print(child)
+            #print(child)
+            #print_string_board(child[1][0])
+            print_string_state(child)
             # print('temp_val')
             # print(temp_val)
             alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False)
@@ -520,15 +538,10 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
                 best_move=(child[1][0],child[1][1],child[1][2])
             beta=min(beta,value)
             if(alpha>=beta):
-                print('quit player')
+                #print('quit player')
                 continue
         return (value,best_move)
 #structure of node: (cell, grid,cpunumpieices,playernumpieces)
-
-
-
-
-
 
 
 
