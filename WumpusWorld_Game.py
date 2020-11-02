@@ -270,7 +270,7 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,1,2,True)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),4,1,5,True)
                 print('end')
                 print(x)
                 return
@@ -287,10 +287,11 @@ def is_terminal(node):
 
 # Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer):
-    if maximizingPlayer:
-        return node[1]-node[2]
-    else:
-        return node[2]-node[1]
+    # if maximizingPlayer:
+    #     return node[1]-node[2]
+    # else:
+    #     return node[2]-node[1]
+    return node[1]-node[2]
 
 
 # Reads the string board and returns the  coordinate pairs of the pieces of the current player
@@ -458,10 +459,12 @@ def string_fight(piece1,piece2):
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     #return #TEMPORARY
     if depth==0 or is_terminal(node):
-        return h_val(node,maximizingPlayer)
+        return (h_val(node,maximizingPlayer),node)
     str_grid=node[0]
+    best_move=None
     if maximizingPlayer:
-        value=float('-inf')
+        #value=float('-inf')
+        value=-1000
         p_queue=[]
         heapq.heapify(p_queue)
         #------------------------------------------------
@@ -483,13 +486,18 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
             print(child)
             # print('temp_val')
             # print(temp_val)
-            value=max(value,alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False))
+            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False)
+            if alphabeta_results[0]>value:
+                value=alphabeta_results[0]
+                best_move=(child[1][0],child[1][1],child[1][2])
             alpha=max(alpha,value)
             if(alpha>=beta):
-                pass
-        return value
+                print('quit cpu')
+                continue
+        return (value,best_move)
     else:
-        value=float('inf')
+        #value=float('inf')
+        value=1000
         p_queue=[]
         heapq.heapify(p_queue)
         pieces=get_piece_list(str_grid,maximizingPlayer)
@@ -503,11 +511,15 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
             #add child to queue
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            value=min(value,alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,True))
-            alpha=max(alpha,value)
+            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,True)
+            if alphabeta_results[0]<value:
+                value=alphabeta_results[0]
+                best_move=(child[1][0],child[1][1],child[1][2])
+            beta=min(beta,value)
             if(alpha>=beta):
-                pass
-        return value
+                print('quit player')
+                continue
+        return (value,best_move)
 #structure of node: (cell, grid,cpunumpieices,playernumpieces)
 
 
