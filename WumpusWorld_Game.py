@@ -270,7 +270,7 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),4,1,5,True)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),5,2,5,True)
                 print('end')
                 print(x)
                 return
@@ -287,11 +287,11 @@ def is_terminal(node):
 
 # Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer):
-    # if maximizingPlayer:
-    #     return node[1]-node[2]
-    # else:
-    #     return node[2]-node[1]
-    return node[1]-node[2]
+    if maximizingPlayer:
+        return node[1]-node[2]
+    else:
+        return node[2]-node[1]
+    # return node[1]-node[2]
 
 
 # Reads the string board and returns the  coordinate pairs of the pieces of the current player
@@ -377,16 +377,18 @@ def get_neighbors_string(pair, array, maximizingPlayer):
     return neighbors
 
 
-#
+# Performs a swap on the pieces for the scenario where coord1 moves to coord2 and beats the unit at coord2
 def win_swap(coord1,coord2,array):
     array[coord2[0]][coord2[1]]=array[coord1[0]][coord1[1]]
     array[coord1[0]][coord1[1]]='-'
     return array
 
+# Performs a swap on the pieces for the scenario where coord1 moves to coord2 and loses to the unit at coord2
 def loss_swap(coord1,coord2,array):
     array[coord1[0]][coord1[1]]='-'
     return array
 
+# Swaps coord1 and coord2
 def swap(coord1,coord2,array):
     temp=array[coord1[0]][coord1[1]]
     array[coord1[0]][coord1[1]]=array[coord2[0]][coord2[1]]
@@ -452,6 +454,7 @@ def string_fight(piece1,piece2):
             return 1
         elif p2_type=='K':
             return -1
+    print('ERROR IN STRING_FIGHT')
     return 0
 
 
@@ -461,10 +464,9 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     if depth==0 or is_terminal(node):
         return (h_val(node,maximizingPlayer),node)
     str_grid=node[0]
-    best_move=None
+    best_move=None #this will be used to return the string_grid of the best move that the computer calculated
     if maximizingPlayer:
-        #value=float('-inf')
-        value=-1000
+        value=float('-inf')
         p_queue=[]
         heapq.heapify(p_queue)
         #------------------------------------------------
@@ -490,14 +492,15 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
             if alphabeta_results[0]>value:
                 value=alphabeta_results[0]
                 best_move=(child[1][0],child[1][1],child[1][2])
+            #I don't know if the next line should be part of the above if statement
             alpha=max(alpha,value)
             if(alpha>=beta):
                 print('quit cpu')
                 continue
         return (value,best_move)
     else:
-        #value=float('inf')
-        value=1000
+        value=float('inf')
+
         p_queue=[]
         heapq.heapify(p_queue)
         pieces=get_piece_list(str_grid,maximizingPlayer)
