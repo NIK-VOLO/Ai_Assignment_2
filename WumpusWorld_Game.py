@@ -301,16 +301,16 @@ def player_move_unit(grid, event):
                 x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),30,float('inf'),float('-inf'),False)
                 PLAYER_NUM_UNITS=x[1][2]
                 CPU_NUM_UNITS=x[1][1]
-                print('end')
-                print(h_val(x[1],False))
+                #print('end')
+                #print(h_val(x[1],False))
 
                 #print(x)
                 print_string_state(x)
 
                 grid.convert_string_board(x[1][0])
                 VICTORY_TEXT = check_win()
-                
-                
+
+
                 return
             else:
                 print("select another to move")
@@ -325,7 +325,8 @@ def is_terminal(node):
 
 # Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer):
-    return h_val1(node,maximizingPlayer)*3+h_val2(node,maximizingPlayer)+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*1.5
+    h_distance_avg(node,maximizingPlayer)
+    return h_val1(node,maximizingPlayer)*15+h_val2(node,maximizingPlayer)+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
     #return h_val3(node,maximizingPlayer)
     # if maximizingPlayer:
     #     return node[2]-node[1]
@@ -374,18 +375,49 @@ def h_val3(node,maximizingPlayer):
                 vals[i]+=1
     return sum(vals)
 
-#Row #,makes it more aggressive
+#Row #,makes it more 'aggressive' --> Prioritize moving towards the other side
 def h_val4(node,maximizingPlayer):
     global D_MOD
     p_list=get_piece_list(node[0],maximizingPlayer)
     total=0
     for i in p_list:
-        print(i[1])
+        #print(i[1])
         if(not maximizingPlayer):
             total+=i[1]
         else:
             total+=(3*D_MOD)-1+i[1]
     return total
+
+def h_distance_avg(node, maximizingPlayer):
+    p_list=get_piece_list(node[0],maximizingPlayer)
+    cp_list =get_piece_list(node[0], not maximizingPlayer)
+    average_dist = 0
+    #print(p_list)
+    #print(cp_list)
+    avg_p_point_x = 0
+    avg_p_point_y = 0
+    avg_cp_point_x = 0
+    avg_cp_point_y = 0
+    avg_p_point = (0,0)
+    avg_cp_point = (0,0)
+    for i in range(len(p_list)):
+        avg_p_point_x += p_list[i][0]
+        avg_p_point_y += p_list[i][1]
+        pass
+    for j in range(len(cp_list)):
+        avg_cp_point_x = cp_list[j][0]
+        avg_cp_point_y = cp_list[j][1]
+        # print(f"{p_list[i]} -- {cp_list[j]}")
+        pass
+    if(len(p_list) > 0):
+        avg_p_point = (avg_p_point_x/len(p_list),avg_p_point_y/len(p_list))
+    if(len(cp_list) > 0):
+        avg_cp_point = (avg_cp_point_x/len(cp_list),avg_cp_point_y/len(cp_list))
+    print(f"{avg_p_point} -- {avg_cp_point}")
+
+    #MANHATTAN DISTACE:
+    print(f"MANHATTAN DISTANCE OF AVERAGE PTS --> {abs(avg_p_point[0] - avg_cp_point[0]) + abs(avg_p_point[1] - avg_cp_point[1])}")
+    return abs(avg_p_point[0] - avg_cp_point[0]) + abs(avg_p_point[1] - avg_cp_point[1])
 
 # Reads the string board and returns the  coordinate pairs of the pieces of the current player
 def get_piece_list(str_grid, maximizingPlayer):
@@ -590,8 +622,8 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         # Get neighbors of
         for child in game_states:
             heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
-        print('length')
-        print(len(p_queue))
+        #print('length')
+        #print(len(p_queue))
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
             print_string_state(child)
@@ -601,9 +633,9 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
                 best_move=(child[1][0],child[1][1],child[1][2])
             #I don't know if the next line should be part of the above if statement
                 alpha=max(alpha,value)
-            # if(alpha>=beta):
-            #     print('quit cpu')
-            #     continue
+            if(alpha>=beta):
+                #print('quit cpu')
+                continue
         return (value,best_move)
     else:
         value=float('inf')
@@ -629,9 +661,9 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
                 value=alphabeta_results[0]
                 best_move=(child[1][0],child[1][1],child[1][2])
                 beta=min(beta,value)
-            # if(alpha>=beta):
-            #     #print('quit player')
-            #     continue
+            if(alpha>=beta):
+                #print('quit player')
+                continue
         return (value,best_move)
 #structure of node: (cell, grid,cpunumpieices,playernumpieces)
 

@@ -1,6 +1,8 @@
 BUGS:
 ----------------
-- Piece count not updated properly
 - 1 unit remaining for each side
   --> Same unit type
-      --> Move unit then attack causes crash
+      --> Move unit then attack causes crash (WHEN PLAYER ATTACKS)
+
+- Currently able to click in non adjacent cells
+  --> Breaks the turn based order because player doesn't actually make a move but CPU does.
