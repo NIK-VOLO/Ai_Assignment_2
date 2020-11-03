@@ -36,8 +36,8 @@ PLAYER_NUM_UNITS = 0
 CPU_NUM_UNITS = 0
 VICTORY_TEXT = "Game In Progress..."
 D_MOD = 1
-p_queue = []
-heapq.heapify(p_queue)
+#p_queue = []
+#heapq.heapify(p_queue)
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -298,14 +298,14 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),30,float('inf'),float('-inf'),False)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),4,float('inf'),float('-inf'),True)
                 PLAYER_NUM_UNITS=x[1][2]
                 CPU_NUM_UNITS=x[1][1]
-                print('end')
-                print(h_val(x[1],False))
+                #print('end')
+                #print(h_val(x[1],True))
 
                 #print(x)
-                print_string_state(x)
+                #print_string_state(x)
 
                 grid.convert_string_board(x[1][0])
                 VICTORY_TEXT = check_win()
@@ -325,7 +325,9 @@ def is_terminal(node):
 
 # Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer):
-    return h_val1(node,maximizingPlayer)*3+h_val2(node,maximizingPlayer)+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*1.5
+    if node[2]==0:
+        return 10000
+    return h_val1(node,maximizingPlayer)*10+h_val2(node,maximizingPlayer)*.5+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
     #return h_val3(node,maximizingPlayer)
     # if maximizingPlayer:
     #     return node[2]-node[1]
@@ -340,11 +342,11 @@ def h_val1(node,maximizingPlayer):
 #number of different neighbor enemy pieces
 def h_val2(node,maximizingPlayer):
 
-    p_list=get_piece_list(node[0],maximizingPlayer)
+    p_list=get_piece_list(node[0],True)
     vals=[0]*len(p_list)
     for i in range(len(p_list)):
         current=p_list[i]
-        neighbors=get_neighbors_string(current,node[0],maximizingPlayer)
+        neighbors=get_neighbors_string(current,node[0],True)
         for j in neighbors:
             if node[0][j[0]][j[1]][0]!='-':
                 f=string_fight(node[0][current[0]][current[1]],node[0][j[0]][j[1]])
@@ -356,12 +358,12 @@ def h_val2(node,maximizingPlayer):
 
 # Number of friendly neighbor pieces, makes it cluster more
 def h_val3(node,maximizingPlayer):
-    p_list=get_piece_list(node[0],maximizingPlayer)
+    p_list=get_piece_list(node[0],True)
     vals=[1]*len(p_list)
     for i in range(len(p_list)):
         current=p_list[i]
-        neighbors=get_neighbors_string(current,node[0],maximizingPlayer)
-        friendlyNeighbors=get_neighbors_string(current,node[0],not maximizingPlayer)
+        neighbors=get_neighbors_string(current,node[0],True)
+        friendlyNeighbors=get_neighbors_string(current,node[0],not True)
         for j in neighbors:
             if node[0][j[0]][j[1]][0]!='-':
                 f=string_fight(node[0][current[0]][current[1]],node[0][j[0]][j[1]])
@@ -377,15 +379,18 @@ def h_val3(node,maximizingPlayer):
 #Row #,makes it more aggressive
 def h_val4(node,maximizingPlayer):
     global D_MOD
-    p_list=get_piece_list(node[0],maximizingPlayer)
+    p_list=get_piece_list(node[0],True)
     total=0
     for i in p_list:
         print(i[1])
-        if(not maximizingPlayer):
+        if(not True):
             total+=i[1]
         else:
             total+=(3*D_MOD)-1+i[1]
     return total
+
+
+
 
 # Reads the string board and returns the  coordinate pairs of the pieces of the current player
 def get_piece_list(str_grid, maximizingPlayer):
@@ -395,10 +400,10 @@ def get_piece_list(str_grid, maximizingPlayer):
         #range
         for j in range(grid.axis_dim):
             if(maximizingPlayer):
-                if str_grid[i][j][0]=='P':
+                if str_grid[i][j][0]=='C':
                     pieces.append([i,j])
             else:
-                if str_grid[i][j][0]=='C':
+                if str_grid[i][j][0]=='P':
                     pieces.append((i,j))
     return pieces
 
@@ -454,7 +459,7 @@ def get_neighbors_string(pair, array, maximizingPlayer):
                 continue
             #Check maximizingPlayer:
             # Assume player is maximizingPlayer
-            if maximizingPlayer:
+            if not maximizingPlayer:
                 #if 1 <= array[cell.col-1+i][cell.row-1+j].ctype <= 3:
                 if array[col-1+i][row-1+j][0] == 'P':
                     #print(f"({i},{j}) IS A MAXimizingPlayer FRIENDLY PIECE (ignore)")
@@ -506,18 +511,18 @@ def get_child_state(coord1,coord2,node,maximizingPlayer):
             array[coord1[0]][coord1[1]]='-'
         elif maximizingPlayer:
             if winner==1:
-                cpu_pieces-=1
+                p_pieces-=1
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                p_pieces-=1
+                cpu_pieces-=1
         elif not maximizingPlayer:
             if winner==1:
-                p_pieces-=1
+                cpu_pieces-=1
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                cpu_pieces-=1
+                p_pieces-=1
         else:
             print('error?')
     return (array,cpu_pieces,p_pieces)
@@ -569,7 +574,8 @@ def print_string_state(state):
 
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     #return #TEMPORARY
-    global p_queue
+    #global p_queue
+    #p_queue=[]
     if depth==0 or is_terminal(node):
         return (h_val(node,maximizingPlayer),node)
     str_grid=node[0]
@@ -601,14 +607,14 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
                 best_move=(child[1][0],child[1][1],child[1][2])
             #I don't know if the next line should be part of the above if statement
                 alpha=max(alpha,value)
-            # if(alpha>=beta):
-            #     print('quit cpu')
-            #     continue
+            if(alpha>=beta):
+                print('quit cpu')
+                continue
         return (value,best_move)
     else:
         value=float('inf')
 
-        #p_queue=[]
+        p_queue=[]
         heapq.heapify(p_queue)
         #------------------------------------------------
         #create the childs of the current board state
@@ -629,9 +635,9 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
                 value=alphabeta_results[0]
                 best_move=(child[1][0],child[1][1],child[1][2])
                 beta=min(beta,value)
-            # if(alpha>=beta):
-            #     #print('quit player')
-            #     continue
+            if(alpha>=beta):
+                #print('quit player')
+                continue
         return (value,best_move)
 #structure of node: (cell, grid,cpunumpieices,playernumpieces)
 
