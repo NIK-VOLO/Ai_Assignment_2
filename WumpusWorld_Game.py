@@ -296,9 +296,9 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,2,5,False)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),5,2,5,False)
                 print('end')
-                print(x)
+                #print(x)
                 print_string_state(x)
                 grid.convert_string_board(x[1][0])
                 return
@@ -330,10 +330,10 @@ def get_piece_list(str_grid, maximizingPlayer):
         #range
         for j in range(grid.axis_dim):
             if(maximizingPlayer):
-                if str_grid[i][j][0]=='C':
+                if str_grid[i][j][0]=='P':
                     pieces.append([i,j])
             else:
-                if str_grid[i][j][0]=='P':
+                if str_grid[i][j][0]=='C':
                     pieces.append((i,j))
     return pieces
 
@@ -391,12 +391,12 @@ def get_neighbors_string(pair, array, maximizingPlayer):
             # Assume player is maximizingPlayer
             if maximizingPlayer:
                 #if 1 <= array[cell.col-1+i][cell.row-1+j].ctype <= 3:
-                if array[col-1+i][row-1+j][0] == 'C':
+                if array[col-1+i][row-1+j][0] == 'P':
                     #print(f"({i},{j}) IS A MAXimizingPlayer FRIENDLY PIECE (ignore)")
                     continue
             else:
                 #if 4 <= grid.grid[cell.col-1+i][cell.row-1+j].ctype <= 6:
-                if array[col-1+i][row-1+j][0] == 'P':
+                if array[col-1+i][row-1+j][0] == 'C':
                     #print(f"({i},{j}) IS A MINImizingPlayer FRIENDLY PIECE (ignore)")
                     continue
             #print(f"({i},{j}) is VALID")
