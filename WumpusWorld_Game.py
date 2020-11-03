@@ -36,6 +36,8 @@ PLAYER_NUM_UNITS = 0
 CPU_NUM_UNITS = 0
 VICTORY_TEXT = "Game In Progress..."
 D_MOD = 1
+p_queue = []
+heapq.heapify(p_queue)
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -111,6 +113,30 @@ class Grid:
         self.grid = [[None for _ in range(self.axis_dim)] for _ in range(self.axis_dim)]
         background.fill((0,0,0))
         self.init_grid()
+        self.draw_map()
+
+# --------------------------------------------------------------------
+
+    def convert_string_board(self, str_board):
+        for i in range(self.axis_dim):
+            for j in range(self.axis_dim):
+                x = str_board[i][j]
+                if x == 'PM':
+                    self.grid[i][j].ctype = 1#MAGE
+                elif x == 'PW':
+                    self.grid[i][j].ctype = 2#WUMPUS
+                elif x == 'PK':
+                    self.grid[i][j].ctype = 3#KNIGHT
+                elif x == 'CM':
+                    self.grid[i][j].ctype = 4#CPUMAGE
+                elif x == 'CW':
+                    self.grid[i][j].ctype = 5#CPUWUMPUS
+                elif x == 'CK':
+                    self.grid[i][j].ctype = 6#CPUKNIGHT
+                elif x == 'H':
+                    self.grid[i][j].ctype = 7#HOLE
+                elif x == '-':
+                    self.grid[i][j].ctype = 8#EMPTY
         self.draw_map()
 
 # --------------------------------------------------------------------
@@ -270,10 +296,11 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,2,5,True)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,2,5,False)
                 print('end')
-                #print(x)
+                print(x)
                 print_string_state(x)
+                grid.convert_string_board(x[1][0])
                 return
             else:
                 print("select another to move")
@@ -477,6 +504,7 @@ def print_string_state(state):
 
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     #return #TEMPORARY
+    global p_queue
     if depth==0 or is_terminal(node):
         return (h_val(node,maximizingPlayer),node)
     str_grid=node[0]
@@ -519,16 +547,19 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     else:
         value=float('inf')
 
-        p_queue=[]
+        #p_queue=[]
         heapq.heapify(p_queue)
+        #------------------------------------------------
+        #create the childs of the current board state
         pieces=get_piece_list(str_grid,maximizingPlayer)
         game_states=list()
         for i in pieces:
             neighbors=get_neighbors_string(i,node[0],False)
             for size in range(len(neighbors)):
                 game_states.append(get_child_state(i,neighbors[size],node,maximizingPlayer))
+        #------------------------------------------------
         for child in game_states:
-            heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
+            heapq.heappush(p_queue,(0-h_val(child,maximizingPlayer),child))
             #add child to queue
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
