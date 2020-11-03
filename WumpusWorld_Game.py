@@ -289,6 +289,8 @@ def player_move_unit(grid, event):
                 t_piece.draw(background)
                 p_piece.draw(background)
 
+                print(f'cpu pieces:{PLAYER_NUM_UNITS}')
+                print(f'player pieces:{CPU_NUM_UNITS}')
 
 
                 print(f"PLAYER PIECES ({PLAYER_NUM_UNITS}) ---- CPU PIECES ({CPU_NUM_UNITS})")
@@ -296,11 +298,16 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),5,2,5,False)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),5,float('inf'),float('-inf'),False)
+                PLAYER_NUM_UNITS=x[1][2]
+                CPU_NUM_UNITS=x[1][1]
                 print('end')
                 #print(x)
                 print_string_state(x)
                 grid.convert_string_board(x[1][0])
+                VICTORY_TEXT = check_win()
+                
+                
                 return
             else:
                 print("select another to move")
@@ -316,9 +323,9 @@ def is_terminal(node):
 # Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer):
     if maximizingPlayer:
-        return node[1]-node[2]
-    else:
         return node[2]-node[1]
+    else:
+        return node[1]-node[2]
     # return node[1]-node[2]
 
 
@@ -441,18 +448,18 @@ def get_child_state(coord1,coord2,node,maximizingPlayer):
             array[coord1[0]][coord1[1]]='-'
         elif maximizingPlayer:
             if winner==1:
-                p_pieces-=1
+                cpu_pieces-=1
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                cpu_pieces-=1
+                p_pieces-=1
         elif not maximizingPlayer:
             if winner==1:
-                cpu_pieces-=1
+                p_pieces-=1
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                p_pieces-=1
+                cpu_pieces-=1
         else:
             print('error?')
     return (array,cpu_pieces,p_pieces)
