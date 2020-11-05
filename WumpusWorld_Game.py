@@ -313,7 +313,7 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                print_string_board(str_board)
+                #print_string_board(str_board)
 
                 grid.draw_map()
 
@@ -343,7 +343,7 @@ def is_terminal(node):
 
 
 # Returns the heuristic value that is used to sort the board states in the priority queue
-def h_val(node,maximizingPlayer):
+def h_val(node,maximizingPlayer, grid):
     #return h_sum_dist(node, maximizingPlayer)
     if node[2]==0:
         return 10000
@@ -354,7 +354,10 @@ def h_val(node,maximizingPlayer):
 
     #return h_distance_avg(node, maximizingPlayer)
 
-    return h_sum_dist(node, maximizingPlayer) + h_val1(node,maximizingPlayer)*10 + h_val2(node,maximizingPlayer) + h_val4(node,maximizingPlayer)*3
+    #return h_sum_dist(node, maximizingPlayer) + h_val1(node,maximizingPlayer)*50 + h_val2(node,maximizingPlayer) + h_val4(node,maximizingPlayer)*3
+
+    #print(h_p_value(node, maximizingPlayer, grid))
+    return h_p_value(node, maximizingPlayer, grid)
 
     #return h_val3(node,maximizingPlayer)
     # if maximizingPlayer:
@@ -362,6 +365,59 @@ def h_val(node,maximizingPlayer):
     # else:
     #     return node[1]-node[2]
     # return node[1]-node[2]
+
+#Calculates the relative value of the pieces --> Which side has stronger units
+def h_p_value(node, maximizingPlayer,grid):
+    p_list=get_piece_list(node[0],not maximizingPlayer)
+    cp_list =get_piece_list(node[0], maximizingPlayer)
+    print(f"P_list length = {len(p_list)}")
+    print(f"cp_list length = {len(cp_list)}")
+    print(cp_list)
+    strength = 0
+    for cp in cp_list:
+        cp_unit = grid.grid[cp[0]][cp[1]].ctype
+        for p in p_list:
+            p_unit = grid.grid[p[0]][p[1]].ctype
+            if cp_unit == Ctype.CPUMAGE:
+                print("1")
+                if p_unit == Ctype.WUMPUS:
+                    strength -= 2
+                elif p_unit == Ctype.KNIGHT:
+                    strength += 2
+            elif cp_unit == Ctype.CPUWUMPUS:
+                print("2")
+                if p_unit == Ctype.KNIGHT:
+                    strength -= 2
+                elif p_unit == Ctype.MAGE:
+                    strength += 2
+            elif cp_unit == Ctype.CPUKNIGHT:
+                print("3")
+                if p_unit == Ctype.MAGE:
+                    strength -= 2
+                elif p_unit == Ctype.WUMPUS:
+                    strength += 2
+            print(f"INNER LOOP: Strength = {strength}")
+    # for p in p_list:
+    #     p_unit = grid.grid[p[0]][p[1]].ctype
+    #     for cp in cp_list:
+    #         cp_unit = grid.grid[cp[0]][cp[1]].ctype
+    #         if cp_unit == Ctype.CPUMAGE:
+    #             if p_unit == Ctype.WUMPUS:
+    #                 strength -= 2
+    #             elif p_unit == Ctype.KNIGHT:
+    #                 strength += 2
+    #         elif cp_unit == Ctype.CPUWUMPUS:
+    #             if p_unit == Ctype.KNIGHT:
+    #                 strength -= 2
+    #             elif p_unit == Ctype.MAGE:
+    #                 strength += 2
+    #         elif cp_unit == Ctype.CPUKNIGHT:
+    #             if p_unit == Ctype.MAGE:
+    #                 strength -= 2
+    #             elif p_unit == Ctype.WUMPUS:
+    #                 strength += 2
+
+    return strength
 
 #difference in # of pieces, makes it more aggressive
 def h_val1(node,maximizingPlayer):
@@ -667,7 +723,7 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
     #global p_queue
     #p_queue=[]
     if depth==0 or is_terminal(node):
-        return (h_val(node,maximizingPlayer),node)
+        return (h_val(node,maximizingPlayer,grid),node)
     str_grid=node[0]
     best_move=None #this will be used to return the string_grid of the best move that the computer calculated
     if maximizingPlayer:
@@ -685,9 +741,9 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
         #------------------------------------------------
         # Get neighbors of
         for child in game_states:
-            heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
-        print('length')
-        print(len(p_queue))
+            heapq.heappush(p_queue,(h_val(child,maximizingPlayer, grid),child))
+        #print('length')
+        #print(len(p_queue))
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
             print_string_state(child)
@@ -716,7 +772,7 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
                 game_states.append(get_child_state(i,neighbors[size],node,maximizingPlayer))
         #------------------------------------------------
         for child in game_states:
-            heapq.heappush(p_queue,(0-h_val(child,maximizingPlayer),child))
+            heapq.heappush(p_queue,(0-h_val(child,maximizingPlayer,grid),child))
             #add child to queue
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
