@@ -317,7 +317,7 @@ def player_move_unit(grid, event):
 
                 grid.draw_map()
 
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,float('inf'),float('-inf'),True,grid)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),1,float('inf'),float('-inf'),True,grid)
                 PLAYER_NUM_UNITS=x[1][2]
                 CPU_NUM_UNITS=x[1][1]
                 #print('end')
@@ -345,8 +345,8 @@ def is_terminal(node):
 # Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer, grid):
     #return h_sum_dist(node, maximizingPlayer)
-    if node[2]==0:
-        return 10000
+    # if node[2]==0:
+    #     return 10000
 
     #return h_val1(node,maximizingPlayer)*20+h_val2(node,maximizingPlayer)*.5+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
 
@@ -368,35 +368,31 @@ def h_val(node,maximizingPlayer, grid):
 
 #Calculates the relative value of the pieces --> Which side has stronger units
 def h_p_value(node, maximizingPlayer,grid):
-    p_list=get_piece_list(node[0],not maximizingPlayer)
-    cp_list =get_piece_list(node[0], maximizingPlayer)
-    print(f"P_list length = {len(p_list)}")
-    print(f"cp_list length = {len(cp_list)}")
-    print(cp_list)
+    p_list=get_piece_list(node[0],False)
+    cp_list =get_piece_list(node[0], True)
+    cp_count= [0]*3
+    p_count= [0]*3
     strength = 0
-    for cp in cp_list:
-        cp_unit = grid.grid[cp[0]][cp[1]].ctype
-        for p in p_list:
-            p_unit = grid.grid[p[0]][p[1]].ctype
-            if cp_unit == Ctype.CPUMAGE:
-                print("1")
-                if p_unit == Ctype.WUMPUS:
-                    strength -= 2
-                elif p_unit == Ctype.KNIGHT:
-                    strength += 2
-            elif cp_unit == Ctype.CPUWUMPUS:
-                print("2")
-                if p_unit == Ctype.KNIGHT:
-                    strength -= 2
-                elif p_unit == Ctype.MAGE:
-                    strength += 2
-            elif cp_unit == Ctype.CPUKNIGHT:
-                print("3")
-                if p_unit == Ctype.MAGE:
-                    strength -= 2
-                elif p_unit == Ctype.WUMPUS:
-                    strength += 2
-            print(f"INNER LOOP: Strength = {strength}")
+    board=node[0]
+    for p in p_list:
+        p_unit=board[p[0]][p[1]]
+        if p_unit == "PM":
+            p_count[0]+=1
+        elif p_unit=='PW':
+            p_count[1]+=1
+        elif p_unit=='PK':
+            p_count[2]+=1
+    for c in cp_list:
+        cp_unit=board[c[0]][c[1]]
+        if cp_unit== 'CM':
+            cp_count[0]+=1
+        elif cp_unit == "CW":
+            cp_count[1]+=1
+        elif cp_unit == "CK":
+            cp_count[2]+=1
+    print(cp_count)
+    print(p_count)
+    strength=cp_count[0]*p_count[2]+cp_count[1]*p_count[0]+cp_count[2]*p_count[1]
     # for p in p_list:
     #     p_unit = grid.grid[p[0]][p[1]].ctype
     #     for cp in cp_list:
@@ -416,7 +412,7 @@ def h_p_value(node, maximizingPlayer,grid):
     #                 strength -= 2
     #             elif p_unit == Ctype.WUMPUS:
     #                 strength += 2
-
+    print(f"STRENGTH:{strength}")
     return strength
 
 #difference in # of pieces, makes it more aggressive
@@ -713,7 +709,7 @@ def print_string_board(board):
 
 def print_string_state(state):
     print("-----------------------------------\nBOARD STATE:")
-    print(f"HVAL: {state[0]}")
+    print(f"HVAL: {h_val(state[1],True,grid)}")
     print(f"PIECES: {state[1][1]},{state[1][2]}")
     print_string_board(state[1][0])
     print("-----------------------------------")
