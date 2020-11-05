@@ -7,7 +7,7 @@ import heapq
 import copy
 from itertools import chain
 import time
-
+import math
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME WINDOW INITIALIZATION  ******
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -317,7 +317,7 @@ def player_move_unit(grid, event):
 
                 grid.draw_map()
 
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),1,float('inf'),float('-inf'),True,grid)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,float('inf'),float('-inf'),True,grid)
                 PLAYER_NUM_UNITS=x[1][2]
                 CPU_NUM_UNITS=x[1][1]
                 #print('end')
@@ -345,20 +345,17 @@ def is_terminal(node):
 # Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer, grid):
     #return h_sum_dist(node, maximizingPlayer)
-    # if node[2]==0:
-    #     return 10000
+    if node[2]==0:
+        return 10000
 
     #return h_val1(node,maximizingPlayer)*20+h_val2(node,maximizingPlayer)*.5+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
 
     #return h_distance_avg(node, maximizingPlayer) + h_val1(node,maximizingPlayer)*20 + h_val2(node,maximizingPlayer)*.5 + h_val4(node,maximizingPlayer)*.5
 
     #return h_distance_avg(node, maximizingPlayer)
-
-    #return h_sum_dist(node, maximizingPlayer) + h_val1(node,maximizingPlayer)*50 + h_val2(node,maximizingPlayer) + h_val4(node,maximizingPlayer)*3
-
+    return h_sum_dist(node, maximizingPlayer)*.75 + max(h_val1(node,maximizingPlayer),h_p_value(node,maximizingPlayer))*50 + h_val2(node,maximizingPlayer)*1+h_val3(node,maximizingPlayer)*0 + h_val4(node,maximizingPlayer)*0
     #print(h_p_value(node, maximizingPlayer, grid))
-    return h_p_value(node, maximizingPlayer, grid)
-
+    #return h_p_value(node, maximizingPlayer, grid)
     #return h_val3(node,maximizingPlayer)
     # if maximizingPlayer:
     #     return node[2]-node[1]
@@ -367,52 +364,33 @@ def h_val(node,maximizingPlayer, grid):
     # return node[1]-node[2]
 
 #Calculates the relative value of the pieces --> Which side has stronger units
-def h_p_value(node, maximizingPlayer,grid):
-    p_list=get_piece_list(node[0],False)
-    cp_list =get_piece_list(node[0], True)
-    cp_count= [0]*3
-    p_count= [0]*3
-    strength = 0
+def h_p_value(node, maximizingPlayer):
+    p_list=get_piece_list(node[0],not maximizingPlayer)
+    cp_list =get_piece_list(node[0], maximizingPlayer)
+    print(f"P_list length = {len(p_list)}")
+    print(f"cp_list length = {len(cp_list)}")
+    print(cp_list)
     board=node[0]
-    for p in p_list:
-        p_unit=board[p[0]][p[1]]
-        if p_unit == "PM":
-            p_count[0]+=1
-        elif p_unit=='PW':
-            p_count[1]+=1
-        elif p_unit=='PK':
-            p_count[2]+=1
-    for c in cp_list:
-        cp_unit=board[c[0]][c[1]]
-        if cp_unit== 'CM':
-            cp_count[0]+=1
-        elif cp_unit == "CW":
-            cp_count[1]+=1
-        elif cp_unit == "CK":
-            cp_count[2]+=1
-    print(cp_count)
-    print(p_count)
-    strength=cp_count[0]*p_count[2]+cp_count[1]*p_count[0]+cp_count[2]*p_count[1]
-    # for p in p_list:
-    #     p_unit = grid.grid[p[0]][p[1]].ctype
-    #     for cp in cp_list:
-    #         cp_unit = grid.grid[cp[0]][cp[1]].ctype
-    #         if cp_unit == Ctype.CPUMAGE:
-    #             if p_unit == Ctype.WUMPUS:
-    #                 strength -= 2
-    #             elif p_unit == Ctype.KNIGHT:
-    #                 strength += 2
-    #         elif cp_unit == Ctype.CPUWUMPUS:
-    #             if p_unit == Ctype.KNIGHT:
-    #                 strength -= 2
-    #             elif p_unit == Ctype.MAGE:
-    #                 strength += 2
-    #         elif cp_unit == Ctype.CPUKNIGHT:
-    #             if p_unit == Ctype.MAGE:
-    #                 strength -= 2
-    #             elif p_unit == Ctype.WUMPUS:
-    #                 strength += 2
-    print(f"STRENGTH:{strength}")
+    strength = 0
+    for cp in cp_list:
+        cp_unit = board[cp[0]][cp[1]]
+        for p in p_list:
+            p_unit = board[p[0]][p[1]]
+            if cp_unit == "CM":
+                if p_unit == "PW":
+                    strength -= 1
+                elif p_unit == "PK":
+                    strength += 1
+            elif cp_unit == "CW":
+                if p_unit == "PK":
+                    strength -= 1
+                elif p_unit == "PM":
+                    strength += 1
+            elif cp_unit == "CK":
+                if p_unit == 'PM':
+                    strength -= 1
+                elif p_unit == "PW":
+                    strength += 1
     return strength
 
 #difference in # of pieces, makes it more aggressive
@@ -434,7 +412,7 @@ def h_val2(node,maximizingPlayer):
                     vals[i]+=1
                 elif(f==-1):
                     vals[i]-=1
-    return sum(vals)
+    return sum(vals)/len(p_list)
 
 # Number of friendly neighbor pieces, makes it cluster more
 def h_val3(node,maximizingPlayer):
@@ -454,7 +432,7 @@ def h_val3(node,maximizingPlayer):
         for k in friendlyNeighbors:
             if node[0][k[0]][k[1]][0]!='-':
                 vals[i]+=1
-    return sum(vals)
+    return sum(vals)/len(p_list)
 
 #Row #,makes it more aggressive
 def h_val4(node,maximizingPlayer):
@@ -463,14 +441,20 @@ def h_val4(node,maximizingPlayer):
     total=0
     for i in p_list:
         #print(i[1])
-        if(not True):
+        if(True):
             total+=i[1]
         else:
             total+=(3*D_MOD)-1+i[1]
-    return total
+    return total/len(p_list)
+
+def row_dif(node):
+    global D_MOD
+    board=node[0]
+    return h_val4(node,True)-h_val4(node,False)
 
 # Calculates the average 'unit position' for each player, then calculates the MANHATTAN distance
 def h_distance_avg(node, maximizingPlayer):
+    global D_MOD
     p_list=get_piece_list(node[0],not maximizingPlayer)
     cp_list =get_piece_list(node[0], maximizingPlayer)
     average_dist = 0
@@ -498,12 +482,12 @@ def h_distance_avg(node, maximizingPlayer):
     #print(f"PLAYER {avg_p_point} -- CPU {avg_cp_point}")
 
     #MANHATTAN DISTACE:
-    result = round((abs(avg_p_point[0] - avg_cp_point[0]) + abs(avg_p_point[1] - avg_cp_point[1])), 2)
+    result = round(math.sqrt(pow(avg_p_point[0] - avg_cp_point[0],2) + pow(avg_p_point[1] - avg_cp_point[1],2)), 2)
     #print(f"MANHATTAN DISTANCE OF AVERAGE PTS --> {result}")
 
 
-
-    return result
+    board_size=D_MOD*3
+    return board_size/result
 
 # Sum of the distances of each piece
 def h_sum_dist(node, maximizingPlayer):
