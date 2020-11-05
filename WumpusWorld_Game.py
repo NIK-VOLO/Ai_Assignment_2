@@ -6,6 +6,7 @@ import queue
 import heapq
 import copy
 from itertools import chain
+import time
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME WINDOW INITIALIZATION  ******
@@ -19,6 +20,7 @@ pygame.init()
 pygame.display.set_caption('WUMPUS WORLD GAME')
 WINDOW = pygame.display.set_mode((WIN_X, WIN_Y))
 background = pygame.Surface((WIN_X, WIN_Y))
+foreground = pygame.Surface((WIN_X, WIN_Y))
 # background.fill(WHITE)
 manager = pygame_gui.UIManager((WIN_X, WIN_Y))
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -207,6 +209,7 @@ def update_selected(cell):
     global NUM_SELECTED
     cell.selected = True
     cell.draw(background)
+    #pygame.display.update()
     NUM_SELECTED += 1
     PLAYER_SELECTIONS.put(cell)
     print(f"SELECTED CELL :: {CLICKED_POS}  {cell.get_type_text()})")
@@ -244,9 +247,13 @@ def player_move_unit(grid, event):
                 elif NUM_SELECTED > 0 and (4 <= cell.ctype <= 8):
                     update_selected(cell)
             print(f"Num selected = {NUM_SELECTED}")
+            #cell.draw(background)
 
             if NUM_SELECTED == 2:
                 print("CONFIRMED MOVE")
+
+                #pygame.display.update()
+
                 # Get the two cells from the queue
                 p_piece = PLAYER_SELECTIONS.get()
                 p_piece.selected = False
@@ -286,19 +293,31 @@ def player_move_unit(grid, event):
                 elif code==-4:
                     print('Probably a bug?')
 
+
                 t_piece.draw(background)
                 p_piece.draw(background)
+
+                str_board=grid.gen_string_board()
+                grid.convert_string_board(str_board)
+                pygame.display.update()
 
                 print(f'cpu pieces:{PLAYER_NUM_UNITS}')
                 print(f'player pieces:{CPU_NUM_UNITS}')
 
 
                 print(f"PLAYER PIECES ({PLAYER_NUM_UNITS}) ---- CPU PIECES ({CPU_NUM_UNITS})")
+
                 VICTORY_TEXT = check_win()
+
+
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,float('inf'),float('-inf'),True)
+                print_string_board(str_board)
+
+                grid.draw_map()
+
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,float('inf'),float('-inf'),True,grid)
                 PLAYER_NUM_UNITS=x[1][2]
                 CPU_NUM_UNITS=x[1][1]
                 #print('end')
@@ -643,7 +662,7 @@ def print_string_state(state):
     print_string_board(state[1][0])
     print("-----------------------------------")
 
-def alphabeta(node,depth,alpha,beta,maximizingPlayer):
+def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
     #return #TEMPORARY
     #global p_queue
     #p_queue=[]
@@ -672,7 +691,7 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
             print_string_state(child)
-            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False)
+            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False,grid)
             if alphabeta_results[0]>value:
                 value=alphabeta_results[0]
                 best_move=(child[1][0],child[1][1],child[1][2])
@@ -701,7 +720,7 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
             #add child to queue
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,True)
+            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,True,grid)
             if alphabeta_results[0]<value:
                 value=alphabeta_results[0]
                 best_move=(child[1][0],child[1][1],child[1][2])

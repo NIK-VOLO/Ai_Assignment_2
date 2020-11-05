@@ -6,6 +6,7 @@ WHITE = (255, 255, 255)
 RED=(255,0,0)
 BLUE=(0,0,255)
 PURPLE=(128,0,128)
+YELLOW =(255, 230, 0)
 class Ctype(IntEnum):
     MAGE=1
     WUMPUS=2
@@ -26,6 +27,8 @@ class Cell:
         self.ctype=ctype
         self.selected=False
         self.innerRect=pygame.Rect(self.x+2,self.y+2,self.size-1,self.size-1)
+        self.surfaceRect=pygame.Surface((self.size-10, self.size-10))
+        self.opacity = 0
         #self.font = pygame.font.SysFont(NONE, 12)
 
 
@@ -121,6 +124,7 @@ class Cell:
         else:
             return ''
     def draw(self,win):
+        selected_rec = self.surfaceRect
 
         font=pygame.font.SysFont(None,20)
         if(self.ctype in range(4,7)):
@@ -130,10 +134,17 @@ class Cell:
         else:
             mainColor=BLACK
         if(self.selected):
+            self.opacity = 100
             mainColor=PURPLE
+        else:
+            self.opacity = 0
         text=font.render(f'{self.get_type_text()}',True,mainColor)
         innerRect=text.get_rect(center=self.innerRect.center)
         #innerRect.fill(WHITE)
         win.fill(WHITE,self.innerRect)
         win.blit(text,innerRect)
+
+        selected_rec.set_alpha(self.opacity)
+        selected_rec.fill(YELLOW)
+        win.blit(self.surfaceRect,(self.x+5,self.y+5))
         # pygame.draw.rect(win,,(self.x,self.y,self.size,self.size))
