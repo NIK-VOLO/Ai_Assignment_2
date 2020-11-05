@@ -357,16 +357,20 @@ def h_val(node,maximizingPlayer):
         return -10000
 
     diff = h_val1(node,maximizingPlayer)
+    strength = h_p_value(node,maximizingPlayer)
+    print(strength)
     result = 0
 
     if diff > 0:
-        result += h_sum_dist(node, maximizingPlayer) * 10
+        result += h_sum_dist(node, maximizingPlayer) * 20
     elif diff < 0:
         result += h_sum_dist(node, maximizingPlayer)
     elif diff == 0:
-        result += h_val4(node,maximizingPlayer) * 10
-
-    result += diff*50 + h_val2(node,maximizingPlayer)*2#+h_val3(node,maximizingPlayer)
+        if node[2] == 1:
+            result += h_sum_dist(node, maximizingPlayer) * 50
+        else:
+            result += h_val4(node,maximizingPlayer) + h_sum_dist(node,maximizingPlayer)
+    result += diff*50 + h_val2(node,maximizingPlayer) + h_val3(node,maximizingPlayer) + strength
 
     return result
 
