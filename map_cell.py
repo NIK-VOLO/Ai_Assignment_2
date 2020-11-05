@@ -26,7 +26,7 @@ class Cell:
         self.y=row*size
         self.ctype=ctype
         self.selected=False
-        self.surfaceRect=pygame.Surface((self.size-10, self.size-10))
+        self.surfaceRect=pygame.Surface((self.size-3, self.size-3))
         self.opacity = 0
         self.innerRect=pygame.Rect(self.x+2,self.y+2,self.size-1,self.size-1)
         #self.font = pygame.font.SysFont(NONE, 12)
@@ -155,6 +155,12 @@ class Cell:
         else:
             self.image = pygame.transform.scale(self.image, (2, 2))
 
+        if(self.selected):
+            self.opacity = 100
+            mainColor=PURPLE
+        else:
+            self.opacity = 0
+
         self.rect = self.image.get_rect(center=self.innerRect.center)
         self.innerRect = self.image.get_rect(center=self.innerRect.center)
         win.fill(WHITE, self.innerRect)
@@ -162,5 +168,4 @@ class Cell:
         win.blit(self.image, self.innerRect)
         selected_rec.set_alpha(self.opacity)
         selected_rec.fill(YELLOW)
-        win.blit(self.surfaceRect,(self.x+5,self.y+5))
-
+        win.blit(self.surfaceRect,(self.x+3,self.y+3))

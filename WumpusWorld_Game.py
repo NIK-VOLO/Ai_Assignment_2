@@ -317,7 +317,7 @@ def player_move_unit(grid, event):
 
                 grid.draw_map()
 
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),3,float('inf'),float('-inf'),True)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,float('inf'),float('-inf'),True)
                 PLAYER_NUM_UNITS=x[1][2]
                 CPU_NUM_UNITS=x[1][1]
                 #print('end')
