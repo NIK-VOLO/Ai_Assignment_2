@@ -351,22 +351,24 @@ def h_val(node,maximizingPlayer):
     elif node[1]==0:
         return -10000
 
-    #return h_val1(node,maximizingPlayer)*20+h_val2(node,maximizingPlayer)*.5+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
+    if node[2]==0:
+        return 10000
+    if node[1] == 0:
+        return -10000
 
-    #return h_distance_avg(node, maximizingPlayer) + h_val1(node,maximizingPlayer)*20 + h_val2(node,maximizingPlayer)*.5 + h_val4(node,maximizingPlayer)*.5
+    diff = h_val1(node,maximizingPlayer)
+    result = 0
 
-    #return h_distance_avg(node, maximizingPlayer)
-    #return h_sum_dist(node, maximizingPlayer)*.75 + h_val1(node,maximizingPlayer)*50 + h_val2(node,maximizingPlayer)*1+h_val3(node,maximizingPlayer)*.05 + h_val4(node,maximizingPlayer)*0
-    #return h_sum_dist(node, maximizingPlayer)*.75 + max(h_val1(node,maximizingPlayer),h_p_value(node,maximizingPlayer))*50 + h_val2(node,maximizingPlayer)*1+h_val3(node,maximizingPlayer)*0 + h_val4(node,maximizingPlayer)*0
-    #print(h_p_value(node, maximizingPlayer, grid))
-    #return h_p_value(node, maximizingPlayer, grid)
-    #return h_val3(node,maximizingPlayer)
-    return h_sum_dist(node, maximizingPlayer)*2 + h_val1(node,maximizingPlayer)*50 + h_val2(node,maximizingPlayer)*2+h_val3(node,maximizingPlayer) + h_val4(node,maximizingPlayer)*0
-    # if maximizingPlayer:
-    #     return node[2]-node[1]
-    # else:
-    #     return node[1]-node[2]
-    # return node[1]-node[2]
+    if diff > 0:
+        result += h_sum_dist(node, maximizingPlayer) * 10
+    elif diff < 0:
+        result += h_sum_dist(node, maximizingPlayer)
+    elif diff == 0:
+        result += h_val4(node,maximizingPlayer) * 10
+
+    result += diff*50 + h_val2(node,maximizingPlayer)*2#+h_val3(node,maximizingPlayer)
+
+    return result
 
 
 #Calculates the relative value of the pieces --> Which side has stronger units
