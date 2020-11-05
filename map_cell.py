@@ -1,11 +1,12 @@
 import pygame
-from enum import Enum
-
+from enum import IntEnum
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED=(255,0,0)
-class Ctype(Enum):
+BLUE=(0,0,255)
+PURPLE=(128,0,128)
+class Ctype(IntEnum):
     MAGE=1
     WUMPUS=2
     KNIGHT=3
@@ -24,21 +25,87 @@ class Cell:
         self.y=row*size
         self.ctype=ctype
         self.selected=False
-        self.innerRect=pygame.Rect(self.x+(self.size/12),self.y+(self.size/12),self.size-(self.size/6),self.size-(self.size/6))
+        self.innerRect=pygame.Rect(self.x+2,self.y+2,self.size-1,self.size-1)
         #self.font = pygame.font.SysFont(NONE, 12)
 
 
-    #Called when a cell is clicked on, 
+    def contains_piece(self,other):
+        return self.ctype<7
+
+    def __str__(self):
+        return f'({self.col},{self.row}),{self.get_type_text()}'
+    #Called when a cell is clicked on,
     def set_selected(self,tf):
         self.selected=tf
 
     def set_ctype(self,ctype):
         self.ctype=ctype
 
+
+    #-------------------------------------------------------
+    # Does not change selected (boolean) or the ctype in the cell.
+    # Have to do that in grid to store information on how many of each type of piece are left
+    # Returns:
+    # 0 if no piece dies,
+    # -1 if self piece dies,
+    # 1 if cell2 dies,
+    # -2 if both pieces die
+    # -3 if move is not allowed
+    # -4 Means that the first piece selected was not a player or cpu piece, so probably a bug with the program
+    #-------------------------------------------------------
+    def fight(self,cell2):
+        if not (self.row in range(cell2.row-1,cell2.row+2) and self.col in range(cell2.col-1,cell2.col+2)):
+            print('Invalid Move cell range')
+            return -3
+        #Self piece is a player piece
+        if(1<=self.ctype<=3):
+            if cell2.ctype==Ctype.EMPTY:
+                return 0
+            elif cell2.ctype==Ctype.HOLE:
+                return -1
+            elif (1<=cell2.ctype<=3):
+                print('Invalid Move pvp')
+                return -3
+            else:
+                id=self.ctype+3-cell2.ctype
+                if(id==0):
+                    print('Both die')
+                    return -2
+                #cell2 piece dies
+                elif(id==1 or id==-2):
+                    return 1
+                #cell1 piece dies
+                else:
+                    return -1
+
+        # Self piece is a cpu piece
+        elif 4<self.ctype<=6:
+            if cell2.ctype==Ctype.EMPTY:
+                return 0
+            elif cell2.ctype==Ctype.HOLE:
+                return -1
+            elif (4<=cell2.ctype<=6):
+                print('Invalid Move cpu v.cpu')
+                return -3
+            else:
+                id=self.ctype-3-cell2.ctype
+                if(id==0):
+                    print('Both die')
+                    return -2
+                #cell2 piece dies
+                elif(id==1 or id==-2):
+                    return 1
+                #cell1 piece dies
+                else:
+                    return -1
+        # Probably a bug
+        else:
+            print('BUG?')
+            return -4
     def get_type_text(self):
         t=self.ctype
         if(t==Ctype.CPUKNIGHT):
-            return 'CPUK'
+            return 'CPUH'
         elif(t==Ctype.CPUMAGE):
             return 'CPUM'
         elif(t==Ctype.CPUWUMPUS):
@@ -46,7 +113,7 @@ class Cell:
         elif(t==Ctype.MAGE):
             return "PM"
         elif(t==Ctype.KNIGHT):
-            return "PK"
+            return "PH"
         elif(t==Ctype.WUMPUS):
             return 'PW'
         elif(t==Ctype.HOLE):
@@ -54,32 +121,17 @@ class Cell:
         else:
             return ''
 
-
     def draw(self,win):
-<<<<<<< Updated upstream
-        print('draw')
-        font=pygame.font.SysFont(None,20)
-        text=font.render(f'Test{self.get_type_text()}',True,RED)
-        innerRect=text.get_rect(center=self.innerRect.center)
-        #innerRect.fill(WHITE)
-        #Edit this based on what the cell currently contains
-        #pygame.draw.rect(win,BLACK,(self.x,self.y,self.size,self.size))
-        #pygame.draw.rect(win,WHITE,(self.x+(self.size/12),self.y+(self.size/12),self.size-(self.size/6),self.size-(self.size/6)))
-        win.fill(WHITE,self.innerRect)
-        win.blit(text,innerRect)
-        # pygame.draw.rect(win,,(self.x,self.y,self.size,self.size))
-        
-=======
-        if(self.ctype == 1):
+        if (self.ctype == 1):
             self.image = pygame.image.load("MageB.png")
         elif self.ctype == 2:
             self.image = pygame.image.load("WumpusB.png")
         elif self.ctype == 3:
-            self.image = pygame.image.load("KnightB.png")
+             self.image = pygame.image.load("KnightB.png")
         elif self.ctype == 4:
-            self.image = pygame.image.load("MageR.png")
+             self.image = pygame.image.load("MageR.png")
         elif self.ctype == 5:
-            self.image = pygame.image.load("WumpusR.png")
+             self.image = pygame.image.load("WumpusR.png")
         elif self.ctype == 6:
             self.image = pygame.image.load("KnightR.png")
         elif self.ctype == 7:
@@ -90,10 +142,10 @@ class Cell:
         print(f"size of cell is {self.size} x {self.size}")
 
         if self.ctype != 8:
-            if(self.size > 32):
+            if (self.size > 32):
                 self.image = pygame.transform.scale(self.image, (32 * round((self.size) / 32), 32 * round((self.size) / 32)))
             else:
-                if(self.size > 16):
+                if (self.size > 16):
                     self.image = pygame.transform.scale(self.image, (16, 16))
                 else:
                     self.image = pygame.transform.scale(self.image, (8, 8))
@@ -102,9 +154,7 @@ class Cell:
 
         self.rect = self.image.get_rect(center=self.innerRect.center)
         self.innerRect = self.image.get_rect(center=self.innerRect.center)
-        win.fill(WHITE,self.innerRect)
+        win.fill(WHITE, self.innerRect)
         pygame.draw.rect(win, WHITE, (self.x + 2, self.y + 2, self.size - 1, self.size - 1))
-        win.blit(self.image,self.innerRect)
+        win.blit(self.image, self.innerRect)
 
-
->>>>>>> Stashed changes

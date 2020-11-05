@@ -1,60 +1,205 @@
 import pygame
 import pygame_gui
+import random
 from map_cell import *
+import queue
+import heapq
+import copy
+from itertools import chain
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME WINDOW INITIALIZATION  ******
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
-WHITE = (255,255,255)
+WHITE = (255, 255, 255)
 GREY = (128, 128, 128)
-WIN_X = 800
+WIN_X = 900
 WIN_Y = 600
 GAME_X = WIN_Y
 pygame.init()
 pygame.display.set_caption('WUMPUS WORLD GAME')
 WINDOW = pygame.display.set_mode((WIN_X, WIN_Y))
 background = pygame.Surface((WIN_X, WIN_Y))
-#background.fill(WHITE)
+# background.fill(WHITE)
 manager = pygame_gui.UIManager((WIN_X, WIN_Y))
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # ***** GLOBAL VARIABLES  ******
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CLICKED_POS = (-1, -1)
+LAST_CLICKED = CLICKED_POS
+NUM_SELECTED = 0
+# QUEUE TO KEEP TRACK OF CONSECUTIVE SELECTS
+PLAYER_SELECTIONS = queue.Queue(3)
+PLAYER_NUM_UNITS = 0
+CPU_NUM_UNITS = 0
+VICTORY_TEXT = "Game In Progress..."
+D_MOD = 1
+p_queue = []
+heapq.heapify(p_queue)
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME GRID FUNCTIONS  ******
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Grid:
     def __init__(self, dimension_mod):
-        self.grid = []
         self.axis_dim = 3*dimension_mod
-#--------------------------------------------------------------------
-    def draw_grid_lines(self, window, axis_dim, size_x, size_y):
-        # gap = size_y // cols
-        gap = size_x // axis_dim
-        for i in range(axis_dim):
-            # DRAWS HORIZONTAL LINES:
-            pygame.draw.line(window, GREY, (0, i * gap), (size_y, i * gap))
-            for j in range(axis_dim):
-                # DRAWS VERTICAL LINES:
-                pygame.draw.line(window, GREY, (j * gap, 0), (j * gap, size_x))
-#------------------------------------------------------------------------------
+        self.grid = [[None for _ in range(
+            self.axis_dim)] for _ in range(self.axis_dim)]
+
+# --------------------------------------------------------------------
+    def init_grid(self):
+        global PLAYER_NUM_UNITS
+        global CPU_NUM_UNITS
+        gap = GAME_X // self.axis_dim
+        print(self.axis_dim/3-1)
+        total_spots = list(range(0, self.axis_dim))
+        hole_locations = []
+        # row
+        for i in range(self.axis_dim):
+            self.grid.append([])
+
+            if(i != 0 and i != self.axis_dim-1):
+                # CHANGE THIS BASED ON WHAT THE PROFESSOR SAYS FOR NUMBER OF PITS
+                hole_locations = random.sample(
+                    total_spots, int(self.axis_dim/3-1))
+            # column
+            for j in range(self.axis_dim):
+                if(i == 0):
+                    cell = Cell(j, i, gap, self.axis_dim, Ctype(((j+1) % 3)+4))
+                    PLAYER_NUM_UNITS += 1
+                elif(i == self.axis_dim-1):
+                    cell = Cell(j, i, gap, self.axis_dim, Ctype(((j+1) % 3)+1))
+                    CPU_NUM_UNITS += 1
+                else:
+                    cell = Cell(j, i, gap, self.axis_dim, Ctype.EMPTY)
+                self.grid[j][i] = cell
+            for k in hole_locations:
+                if(i != 0 and i != self.axis_dim-1):
+                    self.grid[k][i].set_ctype(Ctype.HOLE)
+        return self.grid
+# --------------------------------------------------------------------
+    # Resets the game, keeps the current hole locations
+    def reset_grid(self):
+        global PLAYER_NUM_UNITS
+        global CPU_NUM_UNITS
+        global VICTORY_TEXT
+        VICTORY_TEXT = "Game In Progress. . . "
+        PLAYER_NUM_UNITS=self.axis_dim
+        CPU_NUM_UNITS=self.axis_dim
+        # row
+        for i in range(self.axis_dim):
+            #column
+            for j in range(self.axis_dim):
+                if(i == 0):
+                    self.grid[j][i].ctype=Ctype(((j+1) % 3)+4)
+
+                elif(i == self.axis_dim-1):
+                    self.grid[j][i].ctype=Ctype(((j+1) % 3)+1)
+                else:
+                    if(self.grid[j][i].ctype!=Ctype.HOLE):
+                        self.grid[j][i].ctype=Ctype.EMPTY
+        self.draw_map()
+# --------------------------------------------------------------------
+    def generate_grid(self,dimension_mod):
+        global PLAYER_NUM_UNITS
+        global CPU_NUM_UNITS
+        PLAYER_NUM_UNITS=0
+        CPU_NUM_UNITS=0
+        self.axis_dim=3*dimension_mod
+        self.grid=None
+        self.grid = [[None for _ in range(self.axis_dim)] for _ in range(self.axis_dim)]
+        background.fill((0,0,0))
+        self.init_grid()
+        self.draw_map()
+
+# --------------------------------------------------------------------
+
+    def convert_string_board(self, str_board):
+        for i in range(self.axis_dim):
+            for j in range(self.axis_dim):
+                x = str_board[i][j]
+                if x == 'PM':
+                    self.grid[i][j].ctype = 1#MAGE
+                elif x == 'PW':
+                    self.grid[i][j].ctype = 2#WUMPUS
+                elif x == 'PK':
+                    self.grid[i][j].ctype = 3#KNIGHT
+                elif x == 'CM':
+                    self.grid[i][j].ctype = 4#CPUMAGE
+                elif x == 'CW':
+                    self.grid[i][j].ctype = 5#CPUWUMPUS
+                elif x == 'CK':
+                    self.grid[i][j].ctype = 6#CPUKNIGHT
+                elif x == 'H':
+                    self.grid[i][j].ctype = 7#HOLE
+                elif x == '-':
+                    self.grid[i][j].ctype = 8#EMPTY
+        self.draw_map()
+
+# --------------------------------------------------------------------
+    def gen_string_board(self):
+        string_board=[[None for _ in range(self.axis_dim)] for _ in range(self.axis_dim)]
+        for i in range(self.axis_dim):
+            for j in range(self.axis_dim):
+                x=self.grid[i][j].ctype
+                if(x==1):
+                    string_board[i][j]=('PM')
+                elif(x==2):
+                    string_board[i][j]=('PW')
+                elif(x==3):
+                    string_board[i][j]=('PK')
+                elif(x==4):
+                    string_board[i][j]=('CM')
+                elif(x==5):
+                    string_board[i][j]=('CW')
+                elif(x==6):
+                    string_board[i][j]=('CK')
+                elif(x==7):
+                    string_board[i][j]=('H')
+                elif(x==8):
+                    string_board[i][j]=('-')
+        return string_board
+# --------------------------------------------------------------------
     def draw_map(self):
-        gap=GAME_X//self.axis_dim
-        print(gap)
-        win = WINDOW
-        cell=Cell(0,0,gap,1,Ctype.EMPTY)
-        cell2=Cell(0,1,gap,1,Ctype.EMPTY)
-        win = WINDOW
-        cell.draw(background)
-<<<<<<< Updated upstream
-        cell2.draw(background)
-        #grid = self
-        #win.fill(WHITE)
-        # for row in grid.grid:
-        #     for cell in row:
-        #         cell.draw(win)
-        #grid.draw_grid_lines(win, self.axis_dim, WIN_X, )
+        gap = GAME_X//self.axis_dim
+        # print(gap)
+        win = background
+        for row in self.grid:
+            for cell in row:
+                cell.draw(win)
         pygame.display.update()
-=======
+# --------------------------------------------------------------------
+
+    # SET COLOR OF A PARTICULAR CELL IN GRID
+    # def set_cell_color(self, col, row, color):
+    #     self.grid[col][row].set_color(color)
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # ***** END GRID FUNCTIONS  ******
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # ***** GLOBAL FUNCTIONS  ******
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def get_clicked_pos(grid, position):
+    gap = GAME_X // grid.axis_dim
+    x, y = position
+    row = y // gap
+    col = x // gap
+    return col, row
+
+
+def clear_selected():
+    global PLAYER_SELECTIONS
+    global NUM_SELECTED
+    while not PLAYER_SELECTIONS.empty():
+        cell = PLAYER_SELECTIONS.get()
+        print(f"Removing: '{cell.get_type_text()}' from list")
+        cell.selected = False
+        cell.draw(background)
     NUM_SELECTED = 0
 
 
@@ -153,19 +298,19 @@ def player_move_unit(grid, event):
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),2,float('inf'),float('-inf'),True)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),30,float('inf'),float('-inf'),False)
                 PLAYER_NUM_UNITS=x[1][2]
                 CPU_NUM_UNITS=x[1][1]
                 #print('end')
-                #print(h_val(x[1],True))
+                #print(h_val(x[1],False))
 
                 #print(x)
-                #print_string_state(x)
+                print_string_state(x)
 
                 grid.convert_string_board(x[1][0])
                 VICTORY_TEXT = check_win()
-                
-                
+
+
                 return
             else:
                 print("select another to move")
@@ -180,9 +325,8 @@ def is_terminal(node):
 
 # Returns the heuristic value that is used to sort the board states in the priority queue
 def h_val(node,maximizingPlayer):
-    if node[2]==0:
-        return 10000
-    return h_val1(node,maximizingPlayer)*10+h_val2(node,maximizingPlayer)*.5+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
+    h_distance_avg(node,maximizingPlayer)
+    return h_val1(node,maximizingPlayer)*15+h_val2(node,maximizingPlayer)+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
     #return h_val3(node,maximizingPlayer)
     # if maximizingPlayer:
     #     return node[2]-node[1]
@@ -197,11 +341,11 @@ def h_val1(node,maximizingPlayer):
 #number of different neighbor enemy pieces
 def h_val2(node,maximizingPlayer):
 
-    p_list=get_piece_list(node[0],True)
+    p_list=get_piece_list(node[0],maximizingPlayer)
     vals=[0]*len(p_list)
     for i in range(len(p_list)):
         current=p_list[i]
-        neighbors=get_neighbors_string(current,node[0],True)
+        neighbors=get_neighbors_string(current,node[0],maximizingPlayer)
         for j in neighbors:
             if node[0][j[0]][j[1]][0]!='-':
                 f=string_fight(node[0][current[0]][current[1]],node[0][j[0]][j[1]])
@@ -213,12 +357,12 @@ def h_val2(node,maximizingPlayer):
 
 # Number of friendly neighbor pieces, makes it cluster more
 def h_val3(node,maximizingPlayer):
-    p_list=get_piece_list(node[0],True)
+    p_list=get_piece_list(node[0],maximizingPlayer)
     vals=[1]*len(p_list)
     for i in range(len(p_list)):
         current=p_list[i]
-        neighbors=get_neighbors_string(current,node[0],True)
-        friendlyNeighbors=get_neighbors_string(current,node[0],not True)
+        neighbors=get_neighbors_string(current,node[0],maximizingPlayer)
+        friendlyNeighbors=get_neighbors_string(current,node[0],not maximizingPlayer)
         for j in neighbors:
             if node[0][j[0]][j[1]][0]!='-':
                 f=string_fight(node[0][current[0]][current[1]],node[0][j[0]][j[1]])
@@ -231,21 +375,49 @@ def h_val3(node,maximizingPlayer):
                 vals[i]+=1
     return sum(vals)
 
-#Row #,makes it more aggressive
+#Row #,makes it more 'aggressive' --> Prioritize moving towards the other side
 def h_val4(node,maximizingPlayer):
     global D_MOD
-    p_list=get_piece_list(node[0],True)
+    p_list=get_piece_list(node[0],maximizingPlayer)
     total=0
     for i in p_list:
-        print(i[1])
-        if(not True):
+        #print(i[1])
+        if(not maximizingPlayer):
             total+=i[1]
         else:
             total+=(3*D_MOD)-1+i[1]
     return total
 
+def h_distance_avg(node, maximizingPlayer):
+    p_list=get_piece_list(node[0],maximizingPlayer)
+    cp_list =get_piece_list(node[0], not maximizingPlayer)
+    average_dist = 0
+    #print(p_list)
+    #print(cp_list)
+    avg_p_point_x = 0
+    avg_p_point_y = 0
+    avg_cp_point_x = 0
+    avg_cp_point_y = 0
+    avg_p_point = (0,0)
+    avg_cp_point = (0,0)
+    for i in range(len(p_list)):
+        avg_p_point_x += p_list[i][0]
+        avg_p_point_y += p_list[i][1]
+        pass
+    for j in range(len(cp_list)):
+        avg_cp_point_x = cp_list[j][0]
+        avg_cp_point_y = cp_list[j][1]
+        # print(f"{p_list[i]} -- {cp_list[j]}")
+        pass
+    if(len(p_list) > 0):
+        avg_p_point = (avg_p_point_x/len(p_list),avg_p_point_y/len(p_list))
+    if(len(cp_list) > 0):
+        avg_cp_point = (avg_cp_point_x/len(cp_list),avg_cp_point_y/len(cp_list))
+    print(f"{avg_p_point} -- {avg_cp_point}")
 
-
+    #MANHATTAN DISTACE:
+    print(f"MANHATTAN DISTANCE OF AVERAGE PTS --> {abs(avg_p_point[0] - avg_cp_point[0]) + abs(avg_p_point[1] - avg_cp_point[1])}")
+    return abs(avg_p_point[0] - avg_cp_point[0]) + abs(avg_p_point[1] - avg_cp_point[1])
 
 # Reads the string board and returns the  coordinate pairs of the pieces of the current player
 def get_piece_list(str_grid, maximizingPlayer):
@@ -255,10 +427,10 @@ def get_piece_list(str_grid, maximizingPlayer):
         #range
         for j in range(grid.axis_dim):
             if(maximizingPlayer):
-                if str_grid[i][j][0]=='C':
+                if str_grid[i][j][0]=='P':
                     pieces.append([i,j])
             else:
-                if str_grid[i][j][0]=='P':
+                if str_grid[i][j][0]=='C':
                     pieces.append((i,j))
     return pieces
 
@@ -314,7 +486,7 @@ def get_neighbors_string(pair, array, maximizingPlayer):
                 continue
             #Check maximizingPlayer:
             # Assume player is maximizingPlayer
-            if not maximizingPlayer:
+            if maximizingPlayer:
                 #if 1 <= array[cell.col-1+i][cell.row-1+j].ctype <= 3:
                 if array[col-1+i][row-1+j][0] == 'P':
                     #print(f"({i},{j}) IS A MAXimizingPlayer FRIENDLY PIECE (ignore)")
@@ -366,18 +538,18 @@ def get_child_state(coord1,coord2,node,maximizingPlayer):
             array[coord1[0]][coord1[1]]='-'
         elif maximizingPlayer:
             if winner==1:
-                p_pieces-=1
+                cpu_pieces-=1
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                cpu_pieces-=1
+                p_pieces-=1
         elif not maximizingPlayer:
             if winner==1:
-                cpu_pieces-=1
+                p_pieces-=1
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                p_pieces-=1
+                cpu_pieces-=1
         else:
             print('error?')
     return (array,cpu_pieces,p_pieces)
@@ -429,8 +601,7 @@ def print_string_state(state):
 
 def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     #return #TEMPORARY
-    #global p_queue
-    #p_queue=[]
+    global p_queue
     if depth==0 or is_terminal(node):
         return (h_val(node,maximizingPlayer),node)
     str_grid=node[0]
@@ -451,8 +622,8 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         # Get neighbors of
         for child in game_states:
             heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
-        print('length')
-        print(len(p_queue))
+        #print('length')
+        #print(len(p_queue))
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
             print_string_state(child)
@@ -463,13 +634,13 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
             #I don't know if the next line should be part of the above if statement
                 alpha=max(alpha,value)
             if(alpha>=beta):
-                print('quit cpu')
+                #print('quit cpu')
                 continue
         return (value,best_move)
     else:
         value=float('inf')
 
-        p_queue=[]
+        #p_queue=[]
         heapq.heapify(p_queue)
         #------------------------------------------------
         #create the childs of the current board state
@@ -559,38 +730,82 @@ reset_grid_button = pygame_gui.elements.UIButton(relative_rect =reset_layout, te
                                                 'right': 'right',
                                                 'top': 'top',
                                                 'bottom': 'top'})
->>>>>>> Stashed changes
 
+generate_layout = pygame.Rect(0,0,150,40)
+generate_layout.topright = (-150, 200)
+generate_grid_button = pygame_gui.elements.UIButton(relative_rect =generate_layout, text = "Generate Board", manager = manager,
+                                                anchors={'left': 'right',
+                                                'right': 'right',
+                                                'top': 'top',
+                                                'bottom': 'top'})
 
+dmod_layout = pygame.Rect(0,0,50,40)
+dmod_layout.topright = (-50, 200)
+dmod_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect = dmod_layout, manager = manager,
+                                                        anchors={'left': 'right',
+                                                        'right': 'right',
+                                                        'top': 'top',
+                                                        'bottom': 'top'})
+dmod_text_entry.set_text("1")
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME LOOP ******
         # For testing purposes mainly
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 clock = pygame.time.Clock()
 is_running = True
-grid=Grid(2)
+grid=Grid(D_MOD)
+grid.generate_grid(D_MOD)
+#print(dmod_text_entry.get_text())
+
+# grid.init_grid()
+# print(grid.grid[5][1].ctype)
 grid.draw_map()
+
+# array =[    ('Cw',  'Ch',   'Cm'),
+#             ('-',   '-',    '-'),
+#             ('Pw',  'Ph',   'Pm')   ]
+# # print(array[0][1][0])
+#
+# neighbors = get_neighbors_string((2,0), array, False)
+# for n in neighbors:
+#     print(n)
+
+
+
+
+
 while is_running:
- time_delta = clock.tick(60)/1000.0
- for event in pygame.event.get():
-     if event.type == pygame.QUIT:
-         is_running = False
-     elif event.type == pygame.MOUSEBUTTONDOWN:
-        location = pygame.mouse.get_pos()
-        col = location[0]
-        row = location[1]
-        print("testing clicking")
-        print(f"X-axis Location : {col}")
-        print(f"Y-axis Location : {row}")
+    time_delta = clock.tick(60)/1000.0
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            is_running = False
 
+        player_move_unit(grid, event)
 
-     manager.process_events(event)
+        cpu_score_text.set_text("CPU Pieces: " + str(CPU_NUM_UNITS))
+        player_score_text.set_text("PLAYER Pieces: " + str(PLAYER_NUM_UNITS))
+        game_status_text.set_text(f'{VICTORY_TEXT}')
 
- manager.update(time_delta)
+        if event.type == pygame.USEREVENT:
+            if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                D_MOD = int(dmod_text_entry.get_text())
+                print(f"D_MOD = {D_MOD}")
+                # if event.ui_element == hello_button:
+                #     print('Hello World!')
+                if event.ui_element == reset_grid_button:
+                    print('RESET GRID')
+                    grid.reset_grid()
+                if event.ui_element == generate_grid_button:
+                    print('GENERATE GRID')
+                    grid.generate_grid(D_MOD)
 
- WINDOW.blit(background, (0, 0))
- manager.draw_ui(WINDOW)
+    manager.process_events(event)
 
- pygame.display.update()
+    manager.update(time_delta)
+
+    WINDOW.blit(background, (0, 0))
+    manager.draw_ui(WINDOW)
+
+    pygame.display.update()
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
