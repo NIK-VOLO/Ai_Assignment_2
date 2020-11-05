@@ -6,6 +6,7 @@ WHITE = (255, 255, 255)
 RED=(255,0,0)
 BLUE=(0,0,255)
 PURPLE=(128,0,128)
+YELLOW =(255, 230, 0)
 class Ctype(IntEnum):
     MAGE=1
     WUMPUS=2
@@ -120,7 +121,6 @@ class Cell:
             return 'HOLE'
         else:
             return ''
-
     def draw(self,win):
         if (self.ctype == 1):
             self.image = pygame.image.load("MageB.png")
@@ -157,4 +157,3 @@ class Cell:
         win.fill(WHITE, self.innerRect)
         pygame.draw.rect(win, WHITE, (self.x + 2, self.y + 2, self.size - 1, self.size - 1))
         win.blit(self.image, self.innerRect)
-

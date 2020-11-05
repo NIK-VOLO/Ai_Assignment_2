@@ -6,7 +6,8 @@ import queue
 import heapq
 import copy
 from itertools import chain
-
+import time
+import math
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME WINDOW INITIALIZATION  ******
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -19,6 +20,8 @@ pygame.init()
 pygame.display.set_caption('WUMPUS WORLD GAME')
 WINDOW = pygame.display.set_mode((WIN_X, WIN_Y))
 background = pygame.Surface((WIN_X, WIN_Y))
+
+foreground = pygame.Surface((WIN_X, WIN_Y))
 # background.fill(WHITE)
 manager = pygame_gui.UIManager((WIN_X, WIN_Y))
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -35,7 +38,7 @@ PLAYER_SELECTIONS = queue.Queue(3)
 PLAYER_NUM_UNITS = 0
 CPU_NUM_UNITS = 0
 VICTORY_TEXT = "Game In Progress..."
-D_MOD = 1
+D_MOD = 2
 p_queue = []
 heapq.heapify(p_queue)
 
@@ -207,6 +210,7 @@ def update_selected(cell):
     global NUM_SELECTED
     cell.selected = True
     cell.draw(background)
+    #pygame.display.update()
     NUM_SELECTED += 1
     PLAYER_SELECTIONS.put(cell)
     print(f"SELECTED CELL :: {CLICKED_POS}  {cell.get_type_text()})")
@@ -245,8 +249,10 @@ def player_move_unit(grid, event):
                     update_selected(cell)
             print(f"Num selected = {NUM_SELECTED}")
 
+
             if NUM_SELECTED == 2:
                 print("CONFIRMED MOVE")
+                #cell.draw(background)
                 # Get the two cells from the queue
                 p_piece = PLAYER_SELECTIONS.get()
                 p_piece.selected = False
@@ -286,25 +292,38 @@ def player_move_unit(grid, event):
                 elif code==-4:
                     print('Probably a bug?')
 
+
+
                 t_piece.draw(background)
                 p_piece.draw(background)
 
+                str_board=grid.gen_string_board()
+                grid.convert_string_board(str_board)
+                pygame.display.update()
                 print(f'cpu pieces:{PLAYER_NUM_UNITS}')
                 print(f'player pieces:{CPU_NUM_UNITS}')
 
 
                 print(f"PLAYER PIECES ({PLAYER_NUM_UNITS}) ---- CPU PIECES ({CPU_NUM_UNITS})")
+
+
                 VICTORY_TEXT = check_win()
+
+
 
                  # A method to check if the player or the cpu won should go here
                 str_board=grid.gen_string_board()
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),30,float('inf'),float('-inf'),False)
+                #print_string_board(str_board)
+
+                grid.draw_map()
+
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),3,float('inf'),float('-inf'),True,grid)
                 PLAYER_NUM_UNITS=x[1][2]
                 CPU_NUM_UNITS=x[1][1]
                 #print('end')
-                #print(h_val(x[1],False))
+                #print(h_val(x[1],True))
 
-                #print(x)
+                print("CHOSEN MOVE:")
                 print_string_state(x)
 
                 grid.convert_string_board(x[1][0])
@@ -324,28 +343,69 @@ def is_terminal(node):
 
 
 # Returns the heuristic value that is used to sort the board states in the priority queue
-def h_val(node,maximizingPlayer):
-    h_distance_avg(node,maximizingPlayer)
-    return h_val1(node,maximizingPlayer)*15+h_val2(node,maximizingPlayer)+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
+
+def h_val(node,maximizingPlayer, grid):
+    #return h_sum_dist(node, maximizingPlayer)
+    if node[2]==0:
+        return 10000
+    elif node[1]==0:
+        return -10000
+
+    #return h_val1(node,maximizingPlayer)*20+h_val2(node,maximizingPlayer)*.5+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
+
+    #return h_distance_avg(node, maximizingPlayer) + h_val1(node,maximizingPlayer)*20 + h_val2(node,maximizingPlayer)*.5 + h_val4(node,maximizingPlayer)*.5
+
+    #return h_distance_avg(node, maximizingPlayer)
+    #return h_sum_dist(node, maximizingPlayer)*.75 + h_val1(node,maximizingPlayer)*50 + h_val2(node,maximizingPlayer)*1+h_val3(node,maximizingPlayer)*.05 + h_val4(node,maximizingPlayer)*0
+    #return h_sum_dist(node, maximizingPlayer)*.75 + max(h_val1(node,maximizingPlayer),h_p_value(node,maximizingPlayer))*50 + h_val2(node,maximizingPlayer)*1+h_val3(node,maximizingPlayer)*0 + h_val4(node,maximizingPlayer)*0
+    #print(h_p_value(node, maximizingPlayer, grid))
+    #return h_p_value(node, maximizingPlayer, grid)
     #return h_val3(node,maximizingPlayer)
+    return h_sum_dist(node, maximizingPlayer)*2 + h_val1(node,maximizingPlayer)*50 + h_val2(node,maximizingPlayer)*2+h_val3(node,maximizingPlayer) + h_val4(node,maximizingPlayer)*0
     # if maximizingPlayer:
     #     return node[2]-node[1]
     # else:
     #     return node[1]-node[2]
     # return node[1]-node[2]
 
+
+#Calculates the relative value of the pieces --> Which side has stronger units
+def h_p_value(node, maximizingPlayer):
+    p_list=get_piece_list(node[0],False)
+    cp_list =get_piece_list(node[0], True)
+    board=node[0]
+    strength = 0
+    for cp in cp_list:
+        cp_unit = board[cp[0]][cp[1]]
+        for p in p_list:
+            p_unit = board[p[0]][p[1]]
+            if cp_unit == "CM":
+                if p_unit == "PW":
+                    strength -= 1
+                elif p_unit == "PK":
+                    strength += 1
+            elif cp_unit == "CW":
+                if p_unit == "PK":
+                    strength -= 1
+                elif p_unit == "PM":
+                    strength += 1
+            elif cp_unit == "CK":
+                if p_unit == 'PM':
+                    strength -= 1
+                elif p_unit == "PW":
+                    strength += 1
+    return strength
 #difference in # of pieces, makes it more aggressive
 def h_val1(node,maximizingPlayer):
     return (node[1]-node[2])
 
 #number of different neighbor enemy pieces
 def h_val2(node,maximizingPlayer):
-
-    p_list=get_piece_list(node[0],maximizingPlayer)
+    p_list=get_piece_list(node[0],True)
     vals=[0]*len(p_list)
     for i in range(len(p_list)):
         current=p_list[i]
-        neighbors=get_neighbors_string(current,node[0],maximizingPlayer)
+        neighbors=get_neighbors_string(current,node[0],True)
         for j in neighbors:
             if node[0][j[0]][j[1]][0]!='-':
                 f=string_fight(node[0][current[0]][current[1]],node[0][j[0]][j[1]])
@@ -357,12 +417,12 @@ def h_val2(node,maximizingPlayer):
 
 # Number of friendly neighbor pieces, makes it cluster more
 def h_val3(node,maximizingPlayer):
-    p_list=get_piece_list(node[0],maximizingPlayer)
+    p_list=get_piece_list(node[0],True)
     vals=[1]*len(p_list)
     for i in range(len(p_list)):
         current=p_list[i]
-        neighbors=get_neighbors_string(current,node[0],maximizingPlayer)
-        friendlyNeighbors=get_neighbors_string(current,node[0],not maximizingPlayer)
+        neighbors=get_neighbors_string(current,node[0],True)
+        friendlyNeighbors=get_neighbors_string(current,node[0],not True)
         for j in neighbors:
             if node[0][j[0]][j[1]][0]!='-':
                 f=string_fight(node[0][current[0]][current[1]],node[0][j[0]][j[1]])
@@ -373,24 +433,31 @@ def h_val3(node,maximizingPlayer):
         for k in friendlyNeighbors:
             if node[0][k[0]][k[1]][0]!='-':
                 vals[i]+=1
-    return sum(vals)
+    return sum(vals)/len(p_list)
 
-#Row #,makes it more 'aggressive' --> Prioritize moving towards the other side
+#Row #,makes it more aggressive
 def h_val4(node,maximizingPlayer):
     global D_MOD
-    p_list=get_piece_list(node[0],maximizingPlayer)
+    p_list=get_piece_list(node[0],True)
     total=0
     for i in p_list:
         #print(i[1])
-        if(not maximizingPlayer):
+        if(True):
             total+=i[1]
         else:
             total+=(3*D_MOD)-1+i[1]
-    return total
+    return total/len(p_list)
 
+def row_dif(node):
+    global D_MOD
+    board=node[0]
+    return h_val4(node,True)-h_val4(node,False)
+
+# Calculates the average 'unit position' for each player, then calculates the MANHATTAN distance
 def h_distance_avg(node, maximizingPlayer):
-    p_list=get_piece_list(node[0],maximizingPlayer)
-    cp_list =get_piece_list(node[0], not maximizingPlayer)
+    global D_MOD
+    p_list=get_piece_list(node[0],not maximizingPlayer)
+    cp_list =get_piece_list(node[0], maximizingPlayer)
     average_dist = 0
     #print(p_list)
     #print(cp_list)
@@ -413,11 +480,40 @@ def h_distance_avg(node, maximizingPlayer):
         avg_p_point = (avg_p_point_x/len(p_list),avg_p_point_y/len(p_list))
     if(len(cp_list) > 0):
         avg_cp_point = (avg_cp_point_x/len(cp_list),avg_cp_point_y/len(cp_list))
-    print(f"{avg_p_point} -- {avg_cp_point}")
+    #print(f"PLAYER {avg_p_point} -- CPU {avg_cp_point}")
 
     #MANHATTAN DISTACE:
-    print(f"MANHATTAN DISTANCE OF AVERAGE PTS --> {abs(avg_p_point[0] - avg_cp_point[0]) + abs(avg_p_point[1] - avg_cp_point[1])}")
-    return abs(avg_p_point[0] - avg_cp_point[0]) + abs(avg_p_point[1] - avg_cp_point[1])
+    result = round(math.sqrt(pow(avg_p_point[0] - avg_cp_point[0],2) + pow(avg_p_point[1] - avg_cp_point[1],2)), 2)
+    #print(f"MANHATTAN DISTANCE OF AVERAGE PTS --> {result}")
+
+
+    board_size=D_MOD*3
+    return board_size/result
+
+# Sum of the distances of each piece
+def h_sum_dist(node, maximizingPlayer):
+    global D_MOD
+    base = 2 * D_MOD
+    p_list=get_piece_list(node[0],False)
+    cp_list =get_piece_list(node[0], True)
+    dist_sum = 0
+    #print(p_list)
+    for p in p_list:
+        #print(p, end = "\t")
+        for cp in cp_list:
+            #print(cp, end = ', ')
+            dist_sum += distance_manhat(p,cp)
+    #print(f"DIST_SUM = {dist_sum}")
+    result = dist_sum / (1 + (len(p_list) + (len(cp_list)))*(3 * D_MOD))
+    diff = h_val1(node, maximizingPlayer)
+    modifier = 1/(1 + abs(diff))
+    #print(f"MODIFIER = {modifier}")
+    if diff >= 0:
+        #return base - (result * modifier)
+        return -result
+    else:
+        #return base + result * modifier
+        return result
 
 # Reads the string board and returns the  coordinate pairs of the pieces of the current player
 def get_piece_list(str_grid, maximizingPlayer):
@@ -427,13 +523,16 @@ def get_piece_list(str_grid, maximizingPlayer):
         #range
         for j in range(grid.axis_dim):
             if(maximizingPlayer):
-                if str_grid[i][j][0]=='P':
+
+                if str_grid[i][j][0]=='C':
                     pieces.append([i,j])
             else:
-                if str_grid[i][j][0]=='C':
+                if str_grid[i][j][0]=='P':
                     pieces.append((i,j))
     return pieces
 
+def distance_manhat(p1, p2):
+    return round(abs(p1[0] - p2[0]) + abs(p1[1] - p2[1]), 2)
 # Gets the cells around the piece that have valid moves
 # --> If the cell has a pit, we assume that it's a bad move and don't add it to the list
 # --> Depending on if the turn is maximizingPlayer or not, add cells containing enemy units but ignore friendly units
@@ -486,7 +585,7 @@ def get_neighbors_string(pair, array, maximizingPlayer):
                 continue
             #Check maximizingPlayer:
             # Assume player is maximizingPlayer
-            if maximizingPlayer:
+            if not maximizingPlayer:
                 #if 1 <= array[cell.col-1+i][cell.row-1+j].ctype <= 3:
                 if array[col-1+i][row-1+j][0] == 'P':
                     #print(f"({i},{j}) IS A MAXimizingPlayer FRIENDLY PIECE (ignore)")
@@ -538,18 +637,18 @@ def get_child_state(coord1,coord2,node,maximizingPlayer):
             array[coord1[0]][coord1[1]]='-'
         elif maximizingPlayer:
             if winner==1:
-                cpu_pieces-=1
+                p_pieces-=1
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                p_pieces-=1
+                cpu_pieces-=1
         elif not maximizingPlayer:
             if winner==1:
-                p_pieces-=1
+                cpu_pieces-=1
                 array=win_swap(coord1,coord2,array)
             elif winner==-1:
                 array=loss_swap(coord1,coord2,array)
-                cpu_pieces-=1
+                p_pieces-=1
         else:
             print('error?')
     return (array,cpu_pieces,p_pieces)
@@ -594,16 +693,19 @@ def print_string_board(board):
 
 def print_string_state(state):
     print("-----------------------------------\nBOARD STATE:")
-    print(f"HVAL: {state[0]}")
+    print(f"HVAL: {h_val(state[1],True,grid)}")
+
     print(f"PIECES: {state[1][1]},{state[1][2]}")
     print_string_board(state[1][0])
     print("-----------------------------------")
 
-def alphabeta(node,depth,alpha,beta,maximizingPlayer):
+
+def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
     #return #TEMPORARY
-    global p_queue
+    #global p_queue
+    #p_queue=[]
     if depth==0 or is_terminal(node):
-        return (h_val(node,maximizingPlayer),node)
+        return (h_val(node,maximizingPlayer,grid),node)
     str_grid=node[0]
     best_move=None #this will be used to return the string_grid of the best move that the computer calculated
     if maximizingPlayer:
@@ -621,26 +723,26 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
         #------------------------------------------------
         # Get neighbors of
         for child in game_states:
-            heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
+
+            heapq.heappush(p_queue,(h_val(child,maximizingPlayer, grid),child))
         #print('length')
         #print(len(p_queue))
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
             print_string_state(child)
-            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False)
+            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False,grid)
             if alphabeta_results[0]>value:
                 value=alphabeta_results[0]
                 best_move=(child[1][0],child[1][1],child[1][2])
             #I don't know if the next line should be part of the above if statement
                 alpha=max(alpha,value)
             if(alpha>=beta):
-                #print('quit cpu')
                 continue
         return (value,best_move)
     else:
         value=float('inf')
 
-        #p_queue=[]
+        p_queue=[]
         heapq.heapify(p_queue)
         #------------------------------------------------
         #create the childs of the current board state
@@ -652,17 +754,16 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer):
                 game_states.append(get_child_state(i,neighbors[size],node,maximizingPlayer))
         #------------------------------------------------
         for child in game_states:
-            heapq.heappush(p_queue,(0-h_val(child,maximizingPlayer),child))
+            heapq.heappush(p_queue,(0-h_val(child,maximizingPlayer,grid),child))
             #add child to queue
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,True)
+            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,True,grid)
             if alphabeta_results[0]<value:
                 value=alphabeta_results[0]
                 best_move=(child[1][0],child[1][1],child[1][2])
                 beta=min(beta,value)
             if(alpha>=beta):
-                #print('quit player')
                 continue
         return (value,best_move)
 #structure of node: (cell, grid,cpunumpieices,playernumpieces)
@@ -746,7 +847,8 @@ dmod_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect = dmod_layou
                                                         'right': 'right',
                                                         'top': 'top',
                                                         'bottom': 'top'})
-dmod_text_entry.set_text("1")
+
+dmod_text_entry.set_text("2")
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME LOOP ******
         # For testing purposes mainly
