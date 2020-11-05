@@ -347,26 +347,27 @@ def h_val(node,maximizingPlayer, grid):
     #return h_sum_dist(node, maximizingPlayer)
     if node[2]==0:
         return 10000
+    if node[1] == 0:
+        return -10000
 
-    #return h_val1(node,maximizingPlayer)*20+h_val2(node,maximizingPlayer)*.5+h_val3(node,maximizingPlayer)*.5+h_val4(node,maximizingPlayer)*.5
+    diff = h_val1(node,maximizingPlayer)
+    result = 0
 
-    #return h_distance_avg(node, maximizingPlayer) + h_val1(node,maximizingPlayer)*20 + h_val2(node,maximizingPlayer)*.5 + h_val4(node,maximizingPlayer)*.5
+    if diff > 0:
+        result += h_sum_dist(node, maximizingPlayer) * 10
+    elif diff < 0:
+        result += h_sum_dist(node, maximizingPlayer)
+    elif diff == 0:
+        result += h_val4(node,maximizingPlayer) * 10
 
-    #return h_distance_avg(node, maximizingPlayer)
-    return h_sum_dist(node, maximizingPlayer)*.75 + max(h_val1(node,maximizingPlayer),h_p_value(node,maximizingPlayer))*50 + h_val2(node,maximizingPlayer)*1+h_val3(node,maximizingPlayer)*0 + h_val4(node,maximizingPlayer)*0
-    #print(h_p_value(node, maximizingPlayer, grid))
-    #return h_p_value(node, maximizingPlayer, grid)
-    #return h_val3(node,maximizingPlayer)
-    # if maximizingPlayer:
-    #     return node[2]-node[1]
-    # else:
-    #     return node[1]-node[2]
-    # return node[1]-node[2]
+    result += diff*50 + h_val2(node,maximizingPlayer)*2#+h_val3(node,maximizingPlayer)
+
+    return result
 
 #Calculates the relative value of the pieces --> Which side has stronger units
 def h_p_value(node, maximizingPlayer):
-    p_list=get_piece_list(node[0],not maximizingPlayer)
-    cp_list =get_piece_list(node[0], maximizingPlayer)
+    p_list=get_piece_list(node[0],False)
+    cp_list =get_piece_list(node[0], True)
     print(f"P_list length = {len(p_list)}")
     print(f"cp_list length = {len(cp_list)}")
     print(cp_list)
@@ -412,10 +413,11 @@ def h_val2(node,maximizingPlayer):
                     vals[i]+=1
                 elif(f==-1):
                     vals[i]-=1
-    return sum(vals)/len(p_list)
+    return sum(vals)#/len(p_list)
 
 # Number of friendly neighbor pieces, makes it cluster more
 def h_val3(node,maximizingPlayer):
+
     p_list=get_piece_list(node[0],True)
     vals=[1]*len(p_list)
     for i in range(len(p_list)):
@@ -493,8 +495,8 @@ def h_distance_avg(node, maximizingPlayer):
 def h_sum_dist(node, maximizingPlayer):
     global D_MOD
     base = 2 * D_MOD
-    p_list=get_piece_list(node[0],not maximizingPlayer)
-    cp_list =get_piece_list(node[0], maximizingPlayer)
+    p_list=get_piece_list(node[0],False)
+    cp_list =get_piece_list(node[0], True)
     dist_sum = 0
     #print(p_list)
     for p in p_list:
@@ -726,7 +728,7 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
         #print(len(p_queue))
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            print_string_state(child)
+            #print_string_state(child)
             alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False,grid)
             if alphabeta_results[0]>value:
                 value=alphabeta_results[0]
