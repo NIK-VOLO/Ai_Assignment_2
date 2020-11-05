@@ -26,6 +26,8 @@ class Cell:
         self.y=row*size
         self.ctype=ctype
         self.selected=False
+        self.surfaceRect=pygame.Surface((self.size-10, self.size-10))
+        self.opacity = 0
         self.innerRect=pygame.Rect(self.x+2,self.y+2,self.size-1,self.size-1)
         #self.font = pygame.font.SysFont(NONE, 12)
 
@@ -122,6 +124,7 @@ class Cell:
         else:
             return ''
     def draw(self,win):
+        selected_rec=self.surfaceRect
         if (self.ctype == 1):
             self.image = pygame.image.load("MageB.png")
         elif self.ctype == 2:
@@ -139,7 +142,7 @@ class Cell:
         elif self.ctype == 8:
             self.image = pygame.image.load("Blank.png")
 
-        print(f"size of cell is {self.size} x {self.size}")
+        #print(f"size of cell is {self.size} x {self.size}")
 
         if self.ctype != 8:
             if (self.size > 32):
@@ -157,3 +160,7 @@ class Cell:
         win.fill(WHITE, self.innerRect)
         pygame.draw.rect(win, WHITE, (self.x + 2, self.y + 2, self.size - 1, self.size - 1))
         win.blit(self.image, self.innerRect)
+        selected_rec.set_alpha(self.opacity)
+        selected_rec.fill(YELLOW)
+        win.blit(self.surfaceRect,(self.x+5,self.y+5))
+

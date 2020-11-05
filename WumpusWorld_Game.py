@@ -317,7 +317,7 @@ def player_move_unit(grid, event):
 
                 grid.draw_map()
 
-                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),3,float('inf'),float('-inf'),True,grid)
+                x=alphabeta((str_board,CPU_NUM_UNITS,PLAYER_NUM_UNITS),3,float('inf'),float('-inf'),True)
                 PLAYER_NUM_UNITS=x[1][2]
                 CPU_NUM_UNITS=x[1][1]
                 #print('end')
@@ -344,7 +344,7 @@ def is_terminal(node):
 
 # Returns the heuristic value that is used to sort the board states in the priority queue
 
-def h_val(node,maximizingPlayer, grid):
+def h_val(node,maximizingPlayer):
     #return h_sum_dist(node, maximizingPlayer)
     if node[2]==0:
         return 10000
@@ -693,19 +693,19 @@ def print_string_board(board):
 
 def print_string_state(state):
     print("-----------------------------------\nBOARD STATE:")
-    print(f"HVAL: {h_val(state[1],True,grid)}")
+    print(f"HVAL: {h_val(state[1],True)}")
 
     print(f"PIECES: {state[1][1]},{state[1][2]}")
     print_string_board(state[1][0])
     print("-----------------------------------")
 
 
-def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
+def alphabeta(node,depth,alpha,beta,maximizingPlayer):
     #return #TEMPORARY
     #global p_queue
     #p_queue=[]
     if depth==0 or is_terminal(node):
-        return (h_val(node,maximizingPlayer,grid),node)
+        return (h_val(node,maximizingPlayer),node)
     str_grid=node[0]
     best_move=None #this will be used to return the string_grid of the best move that the computer calculated
     if maximizingPlayer:
@@ -724,13 +724,13 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
         # Get neighbors of
         for child in game_states:
 
-            heapq.heappush(p_queue,(h_val(child,maximizingPlayer, grid),child))
+            heapq.heappush(p_queue,(h_val(child,maximizingPlayer),child))
         #print('length')
         #print(len(p_queue))
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            print_string_state(child)
-            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False,grid)
+            #print_string_state(child)
+            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False)
             if alphabeta_results[0]>value:
                 value=alphabeta_results[0]
                 best_move=(child[1][0],child[1][1],child[1][2])
@@ -754,11 +754,11 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
                 game_states.append(get_child_state(i,neighbors[size],node,maximizingPlayer))
         #------------------------------------------------
         for child in game_states:
-            heapq.heappush(p_queue,(0-h_val(child,maximizingPlayer,grid),child))
+            heapq.heappush(p_queue,(0-h_val(child,maximizingPlayer),child))
             #add child to queue
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,True,grid)
+            alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,True)
             if alphabeta_results[0]<value:
                 value=alphabeta_results[0]
                 best_move=(child[1][0],child[1][1],child[1][2])
