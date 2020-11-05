@@ -20,6 +20,7 @@ pygame.init()
 pygame.display.set_caption('WUMPUS WORLD GAME')
 WINDOW = pygame.display.set_mode((WIN_X, WIN_Y))
 background = pygame.Surface((WIN_X, WIN_Y))
+
 foreground = pygame.Surface((WIN_X, WIN_Y))
 # background.fill(WHITE)
 manager = pygame_gui.UIManager((WIN_X, WIN_Y))
@@ -247,13 +248,11 @@ def player_move_unit(grid, event):
                 elif NUM_SELECTED > 0 and (4 <= cell.ctype <= 8):
                     update_selected(cell)
             print(f"Num selected = {NUM_SELECTED}")
-            #cell.draw(background)
+
 
             if NUM_SELECTED == 2:
                 print("CONFIRMED MOVE")
-
-                #pygame.display.update()
-
+                #cell.draw(background)
                 # Get the two cells from the queue
                 p_piece = PLAYER_SELECTIONS.get()
                 p_piece.selected = False
@@ -294,18 +293,19 @@ def player_move_unit(grid, event):
                     print('Probably a bug?')
 
 
+
                 t_piece.draw(background)
                 p_piece.draw(background)
 
                 str_board=grid.gen_string_board()
                 grid.convert_string_board(str_board)
                 pygame.display.update()
-
                 print(f'cpu pieces:{PLAYER_NUM_UNITS}')
                 print(f'player pieces:{CPU_NUM_UNITS}')
 
 
                 print(f"PLAYER PIECES ({PLAYER_NUM_UNITS}) ---- CPU PIECES ({CPU_NUM_UNITS})")
+
 
                 VICTORY_TEXT = check_win()
 
@@ -343,6 +343,7 @@ def is_terminal(node):
 
 
 # Returns the heuristic value that is used to sort the board states in the priority queue
+
 def h_val(node,maximizingPlayer, grid):
     #return h_sum_dist(node, maximizingPlayer)
     if node[2]==0:
@@ -361,14 +362,12 @@ def h_val(node,maximizingPlayer, grid):
     #return h_p_value(node, maximizingPlayer, grid)
     #return h_val3(node,maximizingPlayer)
     return h_sum_dist(node, maximizingPlayer)*2 + h_val1(node,maximizingPlayer)*50 + h_val2(node,maximizingPlayer)*2+h_val3(node,maximizingPlayer) + h_val4(node,maximizingPlayer)*0
-
-
-
     # if maximizingPlayer:
     #     return node[2]-node[1]
     # else:
     #     return node[1]-node[2]
     # return node[1]-node[2]
+
 
 #Calculates the relative value of the pieces --> Which side has stronger units
 def h_p_value(node, maximizingPlayer):
@@ -396,14 +395,12 @@ def h_p_value(node, maximizingPlayer):
                 elif p_unit == "PW":
                     strength += 1
     return strength
-
 #difference in # of pieces, makes it more aggressive
 def h_val1(node,maximizingPlayer):
     return (node[1]-node[2])
 
 #number of different neighbor enemy pieces
 def h_val2(node,maximizingPlayer):
-
     p_list=get_piece_list(node[0],True)
     vals=[0]*len(p_list)
     for i in range(len(p_list)):
@@ -526,6 +523,7 @@ def get_piece_list(str_grid, maximizingPlayer):
         #range
         for j in range(grid.axis_dim):
             if(maximizingPlayer):
+
                 if str_grid[i][j][0]=='C':
                     pieces.append([i,j])
             else:
@@ -535,8 +533,6 @@ def get_piece_list(str_grid, maximizingPlayer):
 
 def distance_manhat(p1, p2):
     return round(abs(p1[0] - p2[0]) + abs(p1[1] - p2[1]), 2)
-
-
 # Gets the cells around the piece that have valid moves
 # --> If the cell has a pit, we assume that it's a bad move and don't add it to the list
 # --> Depending on if the turn is maximizingPlayer or not, add cells containing enemy units but ignore friendly units
@@ -698,9 +694,11 @@ def print_string_board(board):
 def print_string_state(state):
     print("-----------------------------------\nBOARD STATE:")
     print(f"HVAL: {h_val(state[1],True,grid)}")
+
     print(f"PIECES: {state[1][1]},{state[1][2]}")
     print_string_board(state[1][0])
     print("-----------------------------------")
+
 
 def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
     #return #TEMPORARY
@@ -725,12 +723,13 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
         #------------------------------------------------
         # Get neighbors of
         for child in game_states:
+
             heapq.heappush(p_queue,(h_val(child,maximizingPlayer, grid),child))
         #print('length')
         #print(len(p_queue))
         while len(p_queue)>0:
             child=heapq.heappop(p_queue)
-            #print_string_state(child)
+            print_string_state(child)
             alphabeta_results=alphabeta((child[1][0],child[1][1],child[1][2]),depth-1,alpha,beta,False,grid)
             if alphabeta_results[0]>value:
                 value=alphabeta_results[0]
@@ -738,7 +737,6 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
             #I don't know if the next line should be part of the above if statement
                 alpha=max(alpha,value)
             if(alpha>=beta):
-                #print(' *** β cut-off *** ')
                 continue
         return (value,best_move)
     else:
@@ -766,7 +764,6 @@ def alphabeta(node,depth,alpha,beta,maximizingPlayer,grid):
                 best_move=(child[1][0],child[1][1],child[1][2])
                 beta=min(beta,value)
             if(alpha>=beta):
-                #print('*** α cut-off ***')
                 continue
         return (value,best_move)
 #structure of node: (cell, grid,cpunumpieices,playernumpieces)
@@ -850,6 +847,7 @@ dmod_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect = dmod_layou
                                                         'right': 'right',
                                                         'top': 'top',
                                                         'bottom': 'top'})
+
 dmod_text_entry.set_text("2")
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # ***** GAME LOOP ******

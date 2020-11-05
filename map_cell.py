@@ -27,8 +27,6 @@ class Cell:
         self.ctype=ctype
         self.selected=False
         self.innerRect=pygame.Rect(self.x+2,self.y+2,self.size-1,self.size-1)
-        self.surfaceRect=pygame.Surface((self.size-10, self.size-10))
-        self.opacity = 0
         #self.font = pygame.font.SysFont(NONE, 12)
 
 
@@ -124,27 +122,38 @@ class Cell:
         else:
             return ''
     def draw(self,win):
-        selected_rec = self.surfaceRect
+        if (self.ctype == 1):
+            self.image = pygame.image.load("MageB.png")
+        elif self.ctype == 2:
+            self.image = pygame.image.load("WumpusB.png")
+        elif self.ctype == 3:
+             self.image = pygame.image.load("KnightB.png")
+        elif self.ctype == 4:
+             self.image = pygame.image.load("MageR.png")
+        elif self.ctype == 5:
+             self.image = pygame.image.load("WumpusR.png")
+        elif self.ctype == 6:
+            self.image = pygame.image.load("KnightR.png")
+        elif self.ctype == 7:
+            self.image = pygame.image.load("Hole.png")
+        elif self.ctype == 8:
+            self.image = pygame.image.load("Blank.png")
 
-        font=pygame.font.SysFont(None,20)
-        if(self.ctype in range(4,7)):
-            mainColor=BLUE
-        elif self.ctype in range(1,4):
-            mainColor=RED
-        else:
-            mainColor=BLACK
-        if(self.selected):
-            self.opacity = 100
-            mainColor=PURPLE
-        else:
-            self.opacity = 0
-        text=font.render(f'{self.get_type_text()}',True,mainColor)
-        innerRect=text.get_rect(center=self.innerRect.center)
-        #innerRect.fill(WHITE)
-        win.fill(WHITE,self.innerRect)
-        win.blit(text,innerRect)
+        print(f"size of cell is {self.size} x {self.size}")
 
-        selected_rec.set_alpha(self.opacity)
-        selected_rec.fill(YELLOW)
-        win.blit(self.surfaceRect,(self.x+5,self.y+5))
-        # pygame.draw.rect(win,,(self.x,self.y,self.size,self.size))
+        if self.ctype != 8:
+            if (self.size > 32):
+                self.image = pygame.transform.scale(self.image, (32 * round((self.size) / 32), 32 * round((self.size) / 32)))
+            else:
+                if (self.size > 16):
+                    self.image = pygame.transform.scale(self.image, (16, 16))
+                else:
+                    self.image = pygame.transform.scale(self.image, (8, 8))
+        else:
+            self.image = pygame.transform.scale(self.image, (2, 2))
+
+        self.rect = self.image.get_rect(center=self.innerRect.center)
+        self.innerRect = self.image.get_rect(center=self.innerRect.center)
+        win.fill(WHITE, self.innerRect)
+        pygame.draw.rect(win, WHITE, (self.x + 2, self.y + 2, self.size - 1, self.size - 1))
+        win.blit(self.image, self.innerRect)
