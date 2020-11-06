@@ -831,7 +831,7 @@ game_status_text = pygame_gui.elements.UILabel(relative_rect = game_status_layou
                                                 'bottom': 'bottom'})
 
 reset_layout = pygame.Rect(0,0,150,40)
-reset_layout.topright = (-70, 140)
+reset_layout.topright = (-70, 250)
 reset_grid_button = pygame_gui.elements.UIButton(relative_rect =reset_layout, text = "Reset Board", manager = manager,
                                                 anchors={'left': 'right',
                                                 'right': 'right',
@@ -839,7 +839,7 @@ reset_grid_button = pygame_gui.elements.UIButton(relative_rect =reset_layout, te
                                                 'bottom': 'top'})
 
 generate_layout = pygame.Rect(0,0,150,40)
-generate_layout.topright = (-150, 200)
+generate_layout.topright = (-70, 200)
 generate_grid_button = pygame_gui.elements.UIButton(relative_rect =generate_layout, text = "Generate Board", manager = manager,
                                                 anchors={'left': 'right',
                                                 'right': 'right',
@@ -847,7 +847,7 @@ generate_grid_button = pygame_gui.elements.UIButton(relative_rect =generate_layo
                                                 'bottom': 'top'})
 
 dmod_layout = pygame.Rect(0,0,50,40)
-dmod_layout.topright = (-50, 200)
+dmod_layout.topright = (-20, 200)
 dmod_text_entry = pygame_gui.elements.UITextEntryLine(relative_rect = dmod_layout, manager = manager,
                                                         anchors={'left': 'right',
                                                         'right': 'right',

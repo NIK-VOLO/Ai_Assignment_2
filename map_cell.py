@@ -3,6 +3,7 @@ from enum import IntEnum
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+GREY = (232, 232, 232)
 RED=(255,0,0)
 BLUE=(0,0,255)
 PURPLE=(128,0,128)
