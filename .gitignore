@@ -127,3 +127,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+pygame_gui_test2.py
